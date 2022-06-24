@@ -128,6 +128,7 @@ class _RefAddPageState extends State<RefAddPage> {
                           ),
                         )),
                     SizedBox(height: 24),
+                    // 냉장고 추가 버튼
                     SizedBox(
                       height: 52,
                       width: MediaQuery.of(context).size.width - 32,
@@ -138,7 +139,7 @@ class _RefAddPageState extends State<RefAddPage> {
                                   SnackBar(content: Text("냉장고 이름을 입력해주세요!"), duration: Duration(seconds: 5)));
                             } else {
                               writeRefAndUpdatePresent(inputText);
-                              navigatorKey.currentState?.pop(); // (check) back to home_page and "refresh"
+                              navigatorKey.currentState?.pop(); // (체크) bottom sheet까지 다 없애고 refresh하는 방법은 없을까?
                             }
                           },
                           child: Text("냉장고 추가하기", style: inter17White),
