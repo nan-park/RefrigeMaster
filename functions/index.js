@@ -22,9 +22,11 @@ exports.createCustomToken = functions.region("asia-northeast2").https.onRequest(
 
     try {
         await admin.auth().updateUser(uid, updateParams);
+        console.log("updateuser")
     } catch (e) {
         updateParams["uid"] = uid;
         await admin.auth().createUser(updateParams);
+        console.log("createuser")
     }
 
     const token = await admin.auth().createCustomToken(uid);

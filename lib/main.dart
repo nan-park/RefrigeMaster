@@ -4,6 +4,7 @@ import 'login_page.dart';
 import 'home_page.dart';
 import 'ref_add_page.dart';
 import 'food_add_page.dart';
+import 'food_detail_page.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart' as kakao; // user 구분
@@ -34,6 +35,7 @@ void main() async {
         '/home_page': (context) => HomePage(),
         '/ref_add_page': (context) => RefAddPage(),
         '/food_add_page': (context) => FoodAddPage(),
+        '/food_detail_page': (context) => FoodDetailPage(),
       },
     ),
   );

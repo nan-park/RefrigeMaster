@@ -14,7 +14,7 @@ class _FoodAddPageState extends State<FoodAddPage> {
   // 변수들
   String inputText = "";
   int searchedItemCount = 5; // 검색 결과 항목 개수
-  int oftenItemCount = 5; // 자주 사는 항목 개수. 아무리 많아도 5개 이하.
+  int oftenItemCount = 7; // 자주 사는 항목 개수. 아무리 많아도 7개 이하.
   int selectedItemCount = 1; // 추가하기로 선택한 항목 개수
   @override
   Widget build(BuildContext context) {
