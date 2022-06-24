@@ -52,7 +52,6 @@ Future<Map> refGetDocument() async {
 
 // 현재 냉장고 하나만 가져오기
 Future<Map> presentRefGetDocument() async {
-  //(중요 체크) 계정 처음 생성 시 아무 냉장고가 없을 때 데이터 처리 어떻게 하지?(냉장고 만들도록 유도도 해야 함)
   Map<String, Map<String, dynamic>?> map = {}; // {docid : [Map]}
 
   // final snapshot = await FirebaseFirestore.instance
@@ -66,7 +65,7 @@ Future<Map> presentRefGetDocument() async {
   // print(snapshot.data());
   String docid = snapshot.docs[0].id;
   map[docid] = snapshot.docs[0].data();
-  //(중요체크)(현재) 냉장고 없을 때는 0번째라는 게 없음. 예외 처리 해주기
+  //(중요체크) 냉장고 없을 때는 0번째라는 게 없음. 예외 처리 해줘야 함. 냉장고 없을 때 만들도록 유도도 해줘야 함.
   return map;
 }
 
