@@ -1,0 +1,10 @@
+{
+  "dependencies": {
+    "babel-eslint": "^10.1.0",
+    "firebase-auth": "^0.1.2",
+    "firebase-functions": "^3.21.2"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.18.2"
+  }
+}
