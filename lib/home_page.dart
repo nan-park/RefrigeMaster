@@ -51,7 +51,7 @@ Future<Map> refGetDocument() async {
 }
 
 // 현재 냉장고 하나만 가져오기
-Future<Map> presentRefGetDocument() async {
+Future<Map?> presentRefGetDocument() async {
   Map<String, Map<String, dynamic>?> map = {}; // {docid : [Map]}
 
   // final snapshot = await FirebaseFirestore.instance
@@ -63,10 +63,12 @@ Future<Map> presentRefGetDocument() async {
       .where('present_member', arrayContains: FirebaseAuth.instance.currentUser?.uid)
       .get();
   // print(snapshot.data());
-  String docid = snapshot.docs[0].id;
-  map[docid] = snapshot.docs[0].data();
-  //(중요체크) 냉장고 없을 때는 0번째라는 게 없음. 예외 처리 해줘야 함. 냉장고 없을 때 만들도록 유도도 해줘야 함.
-  return map;
+  for (int i = 0; i < snapshot.docs.length; i++) {
+    String docid = snapshot.docs[i].id;
+    map[docid] = snapshot.docs[i].data();
+    return map;
+  }
+  return null;
 }
 
 // 냉장고에서 재료 가져오기(6개 제한. homepage 미리보기 전용.)
@@ -359,13 +361,33 @@ class _RefTapState extends State<RefTap> {
                   if (snapshot.hasError) {
                     return Center(child: Text("Error"));
                   }
-                  if (!snapshot.hasData) {  //(현재)(체크) 이걸 생성된 냉장고가 없는 상태로 무조건 판단할 수 있을까? 예외가 있나?
-                    return Center(child: Text("There is no refrigerators. Please make a new refrigerator"));
+                  if (!snapshot.hasData) {
+                    //(현재)(체크) 이걸 생성된 냉장고가 없는 상태로 무조건 판단할 수 있을까? 예외가 있나?
+                    return Column(children: [
+                      SizedBox(height: 10),
+                      Text("현재 생성된 냉장고가 없습니다. 냉장고를 추가해주세요!", style: inter14Black),
+                      SizedBox(height: 10),
+                      SizedBox(
+                        height: 52,
+                        width: MediaQuery.of(context).size.width - 32,
+                        child: TextButton(
+                            onPressed: () async {
+                              await navigatorKey.currentState?.pushNamed('/ref_add_page');
+                              setState(() {
+                                presentRefGetDocument();
+                              });
+                            },
+                            child: Text("냉장고 추가하기", style: inter17White),
+                            style: TextButton.styleFrom(
+                                backgroundColor: colorPoint,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)))),
+                      )
+                    ]);
                   } else {
                     pre_docid = snapshot.data.keys.elementAt(0);
                     return Column(
                       children: [
-                        //냉장고 박스
+                        //냉장고 박스 div
                         Container(
                             child: Column(
                           children: [
@@ -391,7 +413,6 @@ class _RefTapState extends State<RefTap> {
                                             if (await refAddBottomSheet(pre_docid)) {
                                               // 창 닫았을 때
                                               setState(() {
-                                                presentRefGetDocument();
                                               });
                                             }
                                             // (체크)냉장고 개수에 따라 크기 바뀌어야 함
@@ -411,15 +432,21 @@ class _RefTapState extends State<RefTap> {
                                       child: InkWell(
                                           //(체크) 누를 때 splash가 딱 맞는 직사각형이라 좀 어색해보임. 나중에 수정하기(디자이너에게 질문)
                                           child: Row(
-                                            children: [
+                                            children: const [
                                               Text("더보기",
                                                   style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontFamily: "Inter",
-                                                      color: Color.fromARGB(130, 34, 34, 34))),
+                                                    fontSize: 14,
+                                                    fontFamily: "Inter",
+                                                    color: Color.fromARGB(130, 34, 34, 34),
+                                                    height: 1.2,
+                                                  )),
                                               SizedBox(width: 2),
-                                              Icon(Icons.arrow_forward_ios,
-                                                  size: 16, color: Color.fromARGB(130, 34, 34, 34)),
+                                              SizedBox(
+                                                height: 16,
+                                                width: 16,
+                                                child: Icon(Icons.arrow_forward_ios,
+                                                    size: 16, color: Color.fromARGB(130, 34, 34, 34)),
+                                              ),
                                             ],
                                           ),
                                           onTap: () {
@@ -514,7 +541,7 @@ class _RefTapState extends State<RefTap> {
       // 플로팅 버튼(식재료 추가)
       floatingActionButton: FloatingActionButton(
           onPressed: () {
-            navigatorKey.currentState?.pushNamed('/food_add_page');
+            navigatorKey.currentState?.pushNamed('/food_search_page');
           },
           backgroundColor: colorPoint,
           child: Icon(Icons.add)),
@@ -527,6 +554,7 @@ class _RefTapState extends State<RefTap> {
         useRootNavigator: true,
         backgroundColor: Colors.transparent,
         context: context,
+        isScrollControlled: true,
         builder: (BuildContext context) {
           return FutureBuilder(
               future: refGetDocument(),
@@ -535,19 +563,22 @@ class _RefTapState extends State<RefTap> {
                   return Center(child: Text("로딩중..."));
                 } else {
                   print("pre_docid: " + pre_docid);
-                  int refCount = snapshot.data.length; // (체크)냉장고 개수
+                  int refCount = snapshot.data.length; // 냉장고 개수
+                  double _height = 290 + 130 * (refCount - 1);
+                  if (_height > MediaQuery.of(context).size.height * 0.8) {
+                    _height = MediaQuery.of(context).size.height * 0.8;
+                  }
                   return Container(
                       // (체크)height이 냉장고 개수에 따라 달라져야 함
-                      // height: ,
+                      height: _height,
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius:
                             BorderRadius.only(topLeft: Radius.circular(13.0), topRight: Radius.circular(13.0)),
                       ),
                       child: SingleChildScrollView(
-                        // (체크) 이거 나중에 container height 맞춘 후에는 지워야 함
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 27.0, horizontal: 16.0), // 공백 상하 27 / 좌우 16
+                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12), // (체크)
                           child: Row(
                             children: [
                               Column(
@@ -791,7 +822,8 @@ class _RefDetailPageState extends State<RefDetailPage> {
             if (snapshot.hasError) {
               return Center(child: Text("Error"));
             }
-            if (!snapshot.hasData) {  //(체크) 냉장고 없을 때 추가 유도 해야함.. 근데 detail page라 굳이 안넣어도 되려나
+            if (!snapshot.hasData) {
+              //(체크) 냉장고 없을 때 추가 유도 해야함.. 근데 detail page라 굳이 안넣어도 되려나
               return Center(child: Text("No data"));
             } else {
               pre_docid = snapshot.data.keys.elementAt(0);
@@ -839,7 +871,6 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                               if (await refAddBottomSheet(pre_docid)) {
                                                 // 창 닫았을 때
                                                 setState(() {
-                                                  presentRefGetDocument();
                                                 });
                                               }
                                               // (체크)냉장고 개수에 따라 크기 바뀌어야 함
@@ -994,7 +1025,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
       // 플로팅 버튼(식재료 추가)
       floatingActionButton: FloatingActionButton(
           onPressed: () {
-            navigatorKey.currentState?.pushNamed('/food_add_page');
+            navigatorKey.currentState?.pushNamed('/food_search_page');
           },
           backgroundColor: colorPoint,
           child: Icon(Icons.add)),
