@@ -3,14 +3,14 @@ import 'package:refrige_master/backside/app_design_comp.dart';
 
 import 'main.dart';
 
-class FoodAddPage extends StatefulWidget {
-  FoodAddPage({Key? key}) : super(key: key);
+class FoodSearchPage extends StatefulWidget {
+  FoodSearchPage({Key? key}) : super(key: key);
 
   @override
-  State<FoodAddPage> createState() => _FoodAddPageState();
+  State<FoodSearchPage> createState() => _FoodSearchPageState();
 }
 
-class _FoodAddPageState extends State<FoodAddPage> {
+class _FoodSearchPageState extends State<FoodSearchPage> {
   // 변수들
   String inputText = "";
   int searchedItemCount = 5; // 검색 결과 항목 개수

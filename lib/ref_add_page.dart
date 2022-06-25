@@ -7,27 +7,32 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'main.dart';
 
 // Add new refrigerator on DB
-void writeRefAndUpdatePresent(String refName) async {
+Future<bool> writeRefAndUpdatePresent(String refName) async {
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection("Refrigerators")
       .where('present_member', arrayContains: FirebaseAuth.instance.currentUser?.uid)
       .get();
-  String pre_docid = snapshot.docs[0].id;
-  // remove
-  await FirebaseFirestore.instance.collection("Refrigerators").doc(pre_docid).update({
-    "present_member": FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
-  });
-
+  String? pre_docid = null;
+  for (int i = 0; i < snapshot.docs.length; i++) {
+    // 1개 or 0개
+    pre_docid = snapshot.docs[i].id;
+  }
+  if (pre_docid != null) {
+    // (냉장고 하나도 없을 때는 무시)
+    // remove
+    await FirebaseFirestore.instance.collection("Refrigerators").doc(pre_docid).update({
+      "present_member": FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+    });
+  }
   // add
-  await FirebaseFirestore.instance
-      .collection("Refrigerators")
-      .add({
-        "member": [FirebaseAuth.instance.currentUser?.uid],
-        "present_member": [FirebaseAuth.instance.currentUser?.uid],
-        "ref_name": refName
-      })
-      .then((value) => value.collection("Ingredients").doc().set({})) //(check) not to make an empty document
+  await FirebaseFirestore.instance.collection("Refrigerators").add({
+    "member": [FirebaseAuth.instance.currentUser?.uid],
+    "present_member": [FirebaseAuth.instance.currentUser?.uid],
+    "ref_name": refName
+  })
+      // .then((value) => value.collection("Ingredients").doc().set({}))  (체크)여기서 Ingredients 컬렉션 안만들면 나중에 검색할 때 문제가 생길지 확인해야 함.
       .catchError((error) => print("Failed to add: $error"));
+  return true; // 끝날때까지 기다린 후 창 닫기
 }
 
 class RefAddPage extends StatefulWidget {
@@ -133,13 +138,16 @@ class _RefAddPageState extends State<RefAddPage> {
                       height: 52,
                       width: MediaQuery.of(context).size.width - 32,
                       child: TextButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (inputText == "") {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("냉장고 이름을 입력해주세요!"), duration: Duration(seconds: 5)));
+                              //(체크) 스낵바 출력
+                              print("snackbar");
+                              SnackBar snackBar = SnackBar(content: Text("냉장고 이름을 입력해주세요!"));
+                              ScaffoldMessenger.of(context).showSnackBar(snackBar);
                             } else {
-                              writeRefAndUpdatePresent(inputText);
-                              navigatorKey.currentState?.pop(); // (체크) bottom sheet까지 다 없애고 refresh하는 방법은 없을까?
+                              if (await writeRefAndUpdatePresent(inputText)) {
+                                navigatorKey.currentState?.pop();
+                              }
                             }
                           },
                           child: Text("냉장고 추가하기", style: inter17White),

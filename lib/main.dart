@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 import 'ref_add_page.dart';
-import 'food_add_page.dart';
+import 'food_search_page.dart';
 import 'food_detail_page.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -34,7 +34,7 @@ void main() async {
         '/login_page': (context) => LoginPage(),
         '/home_page': (context) => HomePage(),
         '/ref_add_page': (context) => RefAddPage(),
-        '/food_add_page': (context) => FoodAddPage(),
+        '/food_search_page': (context) => FoodSearchPage(),
         '/food_detail_page': (context) => FoodDetailPage(),
       },
     ),
