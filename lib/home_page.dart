@@ -903,21 +903,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                               color: Color.fromARGB(128, 34, 34, 34))),
                                       SizedBox(width: 12),
                                       // 설정 버튼
-                                      SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: IconButton(
-                                          padding: EdgeInsets.all(0),
-                                          onPressed: () {
-                                            navigatorKey.currentState?.pushNamed(
-                                              '/member_invite_page',
-                                              arguments: {"refId": pre_docid},
-                                            );
-                                          },
-                                          icon: Icon(Icons.settings),
-                                          color: Color.fromARGB(128, 34, 34, 34),
-                                        ),
-                                      ),
+
                                       SizedBox(
                                         width: 24,
                                         height: 24,
@@ -926,7 +912,10 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                           onPressed: () {
                                             navigatorKey.currentState?.pushNamed(
                                               '/member_list_page',
-                                              arguments: {"refId": pre_docid},
+                                              arguments: {
+                                                "refId": pre_docid,
+                                                "refName": snapshot.data.values.elementAt(0)['ref_name'],
+                                              },
                                             );
                                           },
                                           icon: Icon(Icons.settings),
