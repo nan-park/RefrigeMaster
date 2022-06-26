@@ -4,6 +4,32 @@ import 'package:flutter/services.dart';
 import 'package:refrige_master/backside/app_design_comp.dart';
 import 'package:refrige_master/main.dart';
 
+Future<List> getMemberList(String refId) async {
+  DocumentSnapshot<Map<String, dynamic>> snapshot =
+      await FirebaseFirestore.instance.collection("Refrigerators").doc(refId).get();
+  List lists = snapshot.get("member");
+  List result = [];
+
+  for (var element in lists) {
+    Map maps = {};
+    maps["uid"] = element;
+    maps["username"] = await getNicknamebyUid(element);
+    result.add(maps);
+    print(maps);
+  }
+
+  print(result);
+
+  return result;
+}
+
+//uid로 닉네임 불러오기
+Future<String> getNicknamebyUid(String uid) async {
+  DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore.instance.collection("Users").doc(uid).get();
+
+  return snapshot.get("nickname");
+}
+
 class MemberListPage extends StatefulWidget {
   MemberListPage({Key? key}) : super(key: key);
   @override
@@ -21,6 +47,7 @@ class _MemberListPageState extends State<MemberListPage> {
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
+    getMemberList(args["refId"]);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -55,7 +82,25 @@ class _MemberListPageState extends State<MemberListPage> {
                             alignment: Alignment.center,
                             child: Container(
                               height: 24,
-                              child: Text("냉장고 이름", style: interBold17),
+                              child: Text(args["refName"], style: interBold17),
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: IconButton(
+                                padding: EdgeInsets.all(0),
+                                onPressed: () {
+                                  navigatorKey.currentState?.pushNamed(
+                                    '/member_invite_page',
+                                    arguments: {"refId": args["refId"]},
+                                  );
+                                },
+                                icon: Icon(Icons.person_add_alt_1_outlined),
+                                color: Color.fromARGB(128, 34, 34, 34),
+                              ),
                             ),
                           ),
                         ],
@@ -106,6 +151,52 @@ class _MemberListPageState extends State<MemberListPage> {
                   ),
                 ),
               ),
+              SizedBox(height: 10),
+              FractionallySizedBox(
+                widthFactor: 0.9,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      FutureBuilder(
+                          future: getMemberList(args["refId"]),
+                          builder: (BuildContext context, AsyncSnapshot snapshot) {
+                            if (snapshot.hasData == false) {
+                              return const Text("Loading...",
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontFamily: 'Inter',
+                                    fontSize: 20,
+                                  ));
+                            } else {
+                              return Column(
+                                children: [
+                                  for (int i = 0; i < snapshot.data.length; i++)
+                                    (Column(
+                                      children: [
+                                        SizedBox(
+                                          height: 73,
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                snapshot.data?.elementAt(i)['username'],
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                            height: 1,
+                                            width: MediaQuery.of(context).size.width,
+                                            color: Color.fromARGB(77, 34, 34, 34)),
+                                      ],
+                                    ))
+                                ],
+                              );
+                            }
+                          })
+                    ],
+                  ),
+                ),
+              )
             ],
           ),
         ),
