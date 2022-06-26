@@ -28,7 +28,7 @@ class LoginViewModel {
     }
   }
 
-  Future login() async {
+  Future<bool> login() async {
     isLogined = await _socialLogin.login();
     if (isLogined) {
       user = await kakao.UserApi.instance.me();
@@ -40,7 +40,9 @@ class LoginViewModel {
       });
       await FirebaseAuth.instance.signInWithCustomToken(token);
       await writeUserDoc(user!.kakaoAccount!.profile!.nickname, user!.kakaoAccount!.email!);
+      return true;
     }
+    return false;
   }
 
   Future logout() async {
