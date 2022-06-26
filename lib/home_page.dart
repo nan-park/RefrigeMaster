@@ -222,57 +222,57 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-        home: Scaffold(
-          backgroundColor: Colors.white,
-          bottomNavigationBar: SafeArea(
-            child: Container(
-              height: 55,
-              child: BottomNavigationBar(
-                elevation: 0.0,
-                backgroundColor: Colors.white,
-                selectedLabelStyle: const TextStyle(
-                  fontSize: 10,
-                  fontFamily: 'Inter',
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontSize: 10,
-                  fontFamily: 'Inter',
-                ),
-                selectedItemColor: colorPoint,
-                unselectedItemColor: Color.fromARGB(127, 34, 34, 34),
-                onTap: _onTap,
-                currentIndex: _currentIndex,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.question_answer_outlined),
-                    label: ('냉장고'),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.calendar_today_outlined),
-                    label: ('식단기록'),
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.question_answer_outlined),
-                    label: ('마이페이지'),
-                  ),
-                ],
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        bottomNavigationBar: SafeArea(
+          child: Container(
+            height: 55,
+            child: BottomNavigationBar(
+              elevation: 0.0,
+              backgroundColor: Colors.white,
+              selectedLabelStyle: const TextStyle(
+                fontSize: 10,
+                fontFamily: 'Inter',
               ),
+              unselectedLabelStyle: const TextStyle(
+                fontSize: 10,
+                fontFamily: 'Inter',
+              ),
+              selectedItemColor: colorPoint,
+              unselectedItemColor: Color.fromARGB(127, 34, 34, 34),
+              onTap: _onTap,
+              currentIndex: _currentIndex,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.question_answer_outlined),
+                  label: ('냉장고'),
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  label: ('식단기록'),
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.question_answer_outlined),
+                  label: ('마이페이지'),
+                ),
+              ],
             ),
           ),
-          body: SafeArea(
-            child: IndexedStack(
-                // 안의 페이지 들어가서도 하단바 유지되도록
-                index: _currentIndex,
-                children: _children.map((child) {
-                  int index = _children.indexOf(child);
-                  return Navigator(
-                      key: _navigatorKeyList[index],
-                      onGenerateRoute: (_) {
-                        return MaterialPageRoute(builder: (context) => child);
-                      });
-                }).toList()),
-          ),
         ),
+        body: SafeArea(
+          child: IndexedStack(
+              // 안의 페이지 들어가서도 하단바 유지되도록
+              index: _currentIndex,
+              children: _children.map((child) {
+                int index = _children.indexOf(child);
+                return Navigator(
+                    key: _navigatorKeyList[index],
+                    onGenerateRoute: (_) {
+                      return MaterialPageRoute(builder: (context) => child);
+                    });
+              }).toList()),
+        ),
+      ),
     );
   }
 }
@@ -416,8 +416,7 @@ class _RefTapState extends State<RefTap> {
                                           onPressed: () async {
                                             if (await refAddBottomSheet(pre_docid)) {
                                               // 창 닫았을 때
-                                              setState(() {
-                                              });
+                                              setState(() {});
                                             }
                                             // (체크)냉장고 개수에 따라 크기 바뀌어야 함
                                           },
@@ -839,83 +838,100 @@ class _RefDetailPageState extends State<RefDetailPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Stack(
-                              children: [
-                                // 뒤로가기 버튼
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: SizedBox(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Stack(
+                            children: [
+                              // 뒤로가기 버튼
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: IconButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    padding: EdgeInsets.all(0.0),
+                                    splashRadius: 10,
+                                    icon: Icon(Icons.arrow_back, size: 24),
+                                  ),
+                                ),
+                              ),
+                              // 제목
+                              Align(
+                                alignment: Alignment.center,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                        height: 24,
+                                        child: Text(snapshot.data.values.elementAt(0)['ref_name'], style: interBold17)),
+                                    SizedBox(
                                       width: 24,
                                       height: 24,
                                       child: IconButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
                                           padding: EdgeInsets.all(0.0),
-                                          splashRadius: 10,
-                                          icon: Icon(Icons.arrow_back, size: 24))),
+                                          onPressed: () async {
+                                            if (await refAddBottomSheet(pre_docid)) {
+                                              // 창 닫았을 때
+                                              setState(() {});
+                                            }
+                                            // (체크)냉장고 개수에 따라 크기 바뀌어야 함
+                                          },
+                                          icon: Icon(
+                                            Icons.keyboard_arrow_down,
+                                            size: 24,
+                                            color: Color.fromARGB(130, 34, 34, 34),
+                                          )),
+                                    ),
+                                  ],
                                 ),
-                                // 제목
-                                Align(
-                                  alignment: Alignment.center,
+                              ), // (체크) fontweight Semibold로 바꾸기
+                              Align(
+                                  alignment: Alignment.centerRight,
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.end,
                                     children: [
-                                      Container(
+                                      // 검색 버튼
+                                      SizedBox(
+                                          width: 24,
                                           height: 24,
-                                          child:
-                                              Text(snapshot.data.values.elementAt(0)['ref_name'], style: interBold17)),
+                                          child: IconButton(
+                                              padding: EdgeInsets.all(0),
+                                              onPressed: () {},
+                                              icon: Icon(Icons.search),
+                                              color: Color.fromARGB(128, 34, 34, 34))),
+                                      SizedBox(width: 12),
+                                      // 설정 버튼
                                       SizedBox(
                                         width: 24,
                                         height: 24,
                                         child: IconButton(
-                                            padding: EdgeInsets.all(0.0),
-                                            onPressed: () async {
-                                              if (await refAddBottomSheet(pre_docid)) {
-                                                // 창 닫았을 때
-                                                setState(() {
-                                                });
-                                              }
-                                              // (체크)냉장고 개수에 따라 크기 바뀌어야 함
-                                            },
-                                            icon: Icon(
-                                              Icons.keyboard_arrow_down,
-                                              size: 24,
-                                              color: Color.fromARGB(130, 34, 34, 34),
-                                            )),
+                                          padding: EdgeInsets.all(0),
+                                          onPressed: () {
+                                            navigatorKey.currentState?.pushNamed('/member_invite_page');
+                                          },
+                                          icon: Icon(Icons.settings),
+                                          color: Color.fromARGB(128, 34, 34, 34),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: IconButton(
+                                          padding: EdgeInsets.all(0),
+                                          onPressed: () {
+                                            navigatorKey.currentState?.pushNamed('/member_invite_page');
+                                          },
+                                          icon: Icon(Icons.settings),
+                                          color: Color.fromARGB(128, 34, 34, 34),
+                                        ),
                                       ),
                                     ],
-                                  ),
-                                ), // (체크) fontweight Semibold로 바꾸기
-                                Align(
-                                    alignment: Alignment.centerRight,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        // 검색 버튼
-                                        SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: IconButton(
-                                                padding: EdgeInsets.all(0),
-                                                onPressed: () {},
-                                                icon: Icon(Icons.search),
-                                                color: Color.fromARGB(128, 34, 34, 34))),
-                                        SizedBox(width: 12),
-                                        // 설정 버튼
-                                        SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: IconButton(
-                                                padding: EdgeInsets.all(0),
-                                                onPressed: () {},
-                                                icon: Icon(Icons.settings),
-                                                color: Color.fromARGB(128, 34, 34, 34)))
-                                      ],
-                                    ))
-                              ],
-                            )),
+                                  ))
+                            ],
+                          ),
+                        ),
                       ],
                     ),
                     color: Color.fromARGB(245, 255, 255, 255),
