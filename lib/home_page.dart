@@ -222,53 +222,57 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: SafeArea(
-        child: Scaffold(
-          bottomNavigationBar: Container(
-            height: 55,
-            child: BottomNavigationBar(
-              backgroundColor: Colors.white,
-              selectedLabelStyle: const TextStyle(
-                fontSize: 10,
-                fontFamily: 'Inter',
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          bottomNavigationBar: SafeArea(
+            child: Container(
+              height: 55,
+              child: BottomNavigationBar(
+                elevation: 0.0,
+                backgroundColor: Colors.white,
+                selectedLabelStyle: const TextStyle(
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                ),
+                selectedItemColor: colorPoint,
+                unselectedItemColor: Color.fromARGB(127, 34, 34, 34),
+                onTap: _onTap,
+                currentIndex: _currentIndex,
+                items: const [
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.question_answer_outlined),
+                    label: ('냉장고'),
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.calendar_today_outlined),
+                    label: ('식단기록'),
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.question_answer_outlined),
+                    label: ('마이페이지'),
+                  ),
+                ],
               ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 10,
-                fontFamily: 'Inter',
-              ),
-              selectedItemColor: colorPoint,
-              unselectedItemColor: Color.fromARGB(127, 34, 34, 34),
-              onTap: _onTap,
-              currentIndex: _currentIndex,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.question_answer_outlined),
-                  label: ('냉장고'),
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today_outlined),
-                  label: ('식단기록'),
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.question_answer_outlined),
-                  label: ('마이페이지'),
-                ),
-              ],
             ),
           ),
-          body: IndexedStack(
-              // 안의 페이지 들어가서도 하단바 유지되도록
-              index: _currentIndex,
-              children: _children.map((child) {
-                int index = _children.indexOf(child);
-                return Navigator(
-                    key: _navigatorKeyList[index],
-                    onGenerateRoute: (_) {
-                      return MaterialPageRoute(builder: (context) => child);
-                    });
-              }).toList()),
+          body: SafeArea(
+            child: IndexedStack(
+                // 안의 페이지 들어가서도 하단바 유지되도록
+                index: _currentIndex,
+                children: _children.map((child) {
+                  int index = _children.indexOf(child);
+                  return Navigator(
+                      key: _navigatorKeyList[index],
+                      onGenerateRoute: (_) {
+                        return MaterialPageRoute(builder: (context) => child);
+                      });
+                }).toList()),
+          ),
         ),
-      ),
     );
   }
 }

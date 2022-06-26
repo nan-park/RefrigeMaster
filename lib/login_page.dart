@@ -19,25 +19,32 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        home: SafeArea(
-            child: Scaffold(
-                body: Center(
-      child: StreamBuilder<User?>(
-          stream: FirebaseAuth.instance.authStateChanges(),
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              // 로그인 안 된 상태
-              // 로그인 버튼
-              return ElevatedButton(
-                  onPressed: () async {
-                    await viewModel.login();
-                    navigatorKey.currentState?.pushNamedAndRemoveUntil('/home_page', (route) => false);
-                  },
-                  child: Text("Login"));
-            } else {
-              return Center(child: Text("Loading..."));
-            }
-          }),
-    ))));
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Center(
+            child: StreamBuilder<User?>(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    // 로그인 안 된 상태
+                    // 로그인 버튼
+                    return ElevatedButton(
+                        onPressed: () async {
+                          bool isLogined = await viewModel.login();
+                          if (isLogined) {
+                            navigatorKey.currentState?.pushNamedAndRemoveUntil('/home_page', (route) => false);
+                          }
+                        },
+                        child: Text("Login"));
+                  } else {
+                    return Center(child: Text("Loading..."));
+                  }
+                }),
+          ),
+        ),
+      ),
+    );
   }
 }
