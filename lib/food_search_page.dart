@@ -174,7 +174,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 식재료 리스트(자주 사는 항목)
+                    // 식재료 리스트(자주 사는 항목)  //(체크) 자주 산 항목 하나도 없으면 전체 항목 보여주자
                     inputText == "" ? oftenItemList() : searchItemList(inputText)
                   ],
                 )),
@@ -185,9 +185,10 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
   }
 
   Widget selectedItemBox() {
+    print(item_selected);
     return Container(
         width: MediaQuery.of(context).size.width,
-        height: 146,
+        height: 150,
         color: Color.fromARGB(255, 239, 241, 245),
         child: Padding(
             padding: EdgeInsets.all(16.0),
@@ -333,6 +334,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                   // 카테고리
                   Text(category, style: inter14Black),
                   Expanded(child: Container()),
+                  // 체크 버튼
                   SizedBox(
                       height: 20,
                       width: 20,

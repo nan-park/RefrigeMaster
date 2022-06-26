@@ -7,10 +7,11 @@ const TextStyle inter14Black = TextStyle(fontSize: 14, fontFamily: "Inter", colo
 const TextStyle interBold20 = TextStyle(fontSize: 20, fontFamily: "Inter", fontWeight: FontWeight.bold);
 const TextStyle interBold17 = TextStyle(fontSize: 17, fontFamily: "Inter", fontWeight: FontWeight.bold);
 const TextStyle inter17White = TextStyle(fontSize: 17, fontFamily: "Inter", color: Colors.white);
-const TextStyle interBold20Blue =
-    TextStyle(fontSize: 20, fontFamily: "Inter", fontWeight: FontWeight.bold, color: colorBlue);
+const TextStyle interBold20Blue = TextStyle(fontSize: 20, fontFamily: "Inter", fontWeight: FontWeight.bold, color: colorBlue);
 const TextStyle inter14Blue = TextStyle(fontSize: 14, fontFamily: "Inter", color: colorBlue);
 const TextStyle inter14Grey = TextStyle(fontSize: 14, fontFamily: "Inter", color: colorGrey, height: 1); // food_detail_page 때문에 줄맞춤
+const TextStyle inter13Black = TextStyle(fontSize: 13, fontFamily: "Inter", color: Colors.black, height: 1.5); // letter height 20
+const TextStyle interBold13White = TextStyle(fontSize: 13, fontFamily: "Inter", fontWeight: FontWeight.bold, color: Colors.white, height: 1.5); // letter height 20
 // (체크) const로 안하고 함수로 해도 되는 걸 나중에 깨달음.. 나중에 여유 있으면 바꾸자 ex) interGrey(14)
 
 //색상
