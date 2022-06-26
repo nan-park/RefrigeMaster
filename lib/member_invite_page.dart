@@ -20,6 +20,12 @@ Future<Map> getUserByEmail(String email) async {
   }
 }
 
+Future addMember(String refUid, String userUid) async {
+  await FirebaseFirestore.instance.collection("Refrigerators").doc(refUid).update({
+    "member": FieldValue.arrayUnion([userUid])
+  });
+}
+
 class MemberInvitePage extends StatefulWidget {
   MemberInvitePage({Key? key}) : super(key: key);
   @override
@@ -31,10 +37,12 @@ class _MemberInvitePageState extends State<MemberInvitePage> {
   bool searchSucceed = false;
   String userName = "Loading...";
   String inputText = "";
+  Map user = {};
   var emailFocusNode = FocusNode();
   var emailInputController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -127,7 +135,7 @@ class _MemberInvitePageState extends State<MemberInvitePage> {
                   child: ElevatedButton(
                     onPressed: () async {
                       emailFocusNode.unfocus();
-                      Map user = await getUserByEmail(inputText);
+                      user = await getUserByEmail(inputText);
                       print(user);
                       setState(() {
                         searched = true;
@@ -175,7 +183,10 @@ class _MemberInvitePageState extends State<MemberInvitePage> {
                             width: 130,
                             height: 43,
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () async {
+                                await addMember(args["refId"], user["id"]);
+                                navigatorKey.currentState?.pop();
+                              },
                               style: ElevatedButton.styleFrom(
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
