@@ -59,7 +59,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBRX2YgbfcT0iyCQ5ZyHT7dclgxawoaRVE',
-    appId: '1:151835860249:ios:8bb7da34f58f064ba97988',
+    appId: '1:151835860249:ios:ef4b183fb232fed3a97988',
     messagingSenderId: '151835860249',
     projectId: 'refrigemaster',
     storageBucket: 'refrigemaster.appspot.com',

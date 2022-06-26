@@ -1214,7 +1214,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                             shape:
                                                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(100.0))))),
                                 SizedBox(height: 33),
-                                // 유통기한 임박순 버튼 //(체크) 버튼 누르면 자동으로 바텀시트 닫히고 업데이트 되도록
+                                // 유통기한 임박순 버튼 //(체크) 버튼 누르면 자동으로 바텀시트 닫히고 업데이트 되도록 하는 게 좋을까?
                                 SizedBox(
                                     height: 20,
                                     width: 20,

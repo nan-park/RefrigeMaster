@@ -12,7 +12,7 @@ Future<List> oftenGetDocumentList() async {
   QuerySnapshot snapshot = await FirebaseFirestore.instance
       .collection("Users/" + FirebaseAuth.instance.currentUser!.uid + "/OftenItems")
       .orderBy("register_count", descending: true)
-      .limit(7)
+      .limit(6)
       .get();
 
   snapshot.docs.forEach((element) {
@@ -46,7 +46,6 @@ Future<List> templateGetDocumentList(String inputText) async {
   snapshot.docs.forEach((element) {
     lists.add(element.id);
   });
-  print(lists);
 
   return lists;
 }
@@ -60,10 +59,11 @@ Future<Map> templateGetDocument(String inputText) async {
     map[lists[i]] = documentData.data(); // ex. map = {docid : {category: 과일, name: 사과}}
   }
 
-  print(map);
-
   return map;
 }
+
+// 전역 변수(global)
+List<String> item_selected = []; // ex. ["사과/과일", "가지/채소"]
 
 class FoodSearchPage extends StatefulWidget {
   FoodSearchPage({Key? key}) : super(key: key);
@@ -85,9 +85,9 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
             child: Scaffold(
                 body: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(), // 키보드 이외의 영역 선택하면 키보드 사라짐
+          // 전체 영역 div
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            // 전체 영역 div
             children: [
               //appBar 상단바
               Container(
@@ -106,6 +106,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                                   height: 24,
                                   child: IconButton(
                                       onPressed: () {
+                                        item_selected = []; // 선택 항목 리스트 초기화
                                         navigatorKey.currentState?.pop();
                                       },
                                       padding: EdgeInsets.all(0.0),
@@ -117,7 +118,22 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                                 alignment: Alignment.center,
                                 child: Container(
                                     height: 24,
-                                    child: Text("품목 추가", style: interBold17))) // (체크) fontweight Semibold로 바꾸기
+                                    child: Text("품목추가", style: interBold17))), // (체크) fontweight Semibold로 바꾸기
+                            // 완료 버튼 (체크) 디자인과 별개로 일단 넣어봤음. 나중에 디자인 확정되면 바꿀 수도?
+                            Align(
+                                alignment: Alignment.centerRight,
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: IconButton(
+                                      icon: Icon(Icons.check),
+                                      padding: EdgeInsets.all(0.0),
+                                      onPressed: () {
+                                        navigatorKey.currentState?.pushNamed('/food_add_page', arguments: {
+                                          "item_selected": item_selected
+                                        }); //(체크) 직접 입력한 경우 카테고리가 없어서 "수박/" 이런식으로 될 수도 있으니 예외 처리 주의.
+                                      }),
+                                ))
                           ],
                         )),
                   ],
@@ -142,20 +158,22 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                           fillColor: Color.fromARGB(255, 239, 241, 245),
                           filled: true),
                       onChanged: (text) {
+                        // (체크) 리스너로 바꿀까..?
                         setState(() {
                           inputText = text;
                         });
                       },
                     ),
                   )),
+              // 구분선
+              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+              // 선택 항목(item_selected 비어있으면 안 나옴)
+              item_selected.isNotEmpty ? selectedItemBox() : Container(),
               Expanded(
                 child: SingleChildScrollView(
                     child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // (체크) 검색창에 무언가 넣었을 때는 '자주 사는 항목' 사라지고 검색 결과 나와야 함.
-                    // 구분선
-
                     // 식재료 리스트(자주 사는 항목)
                     inputText == "" ? oftenItemList() : searchItemList(inputText)
                   ],
@@ -166,11 +184,84 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
         ))));
   }
 
-  Widget oftenItemList() {
-    // 자주 사는 항목. 아무리 많아도 7개 이하.
+  Widget selectedItemBox() {
+    return Container(
+        width: MediaQuery.of(context).size.width,
+        height: 146,
+        color: Color.fromARGB(255, 239, 241, 245),
+        child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("선택 항목", style: inter17),
+                SizedBox(height: 18),
+                // 리스트
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (int i = 0; i < item_selected.length; i++)
+                        Row(
+                          children: [
+                            selectedItem(
+                                item_selected[i].split("/")[0], // 식재료 이름
+                                item_selected[i].split("/")[1]), // 카테고리
+                            SizedBox(width: 16),
+                          ],
+                        )
+                    ],
+                  ),
+                )
+              ],
+            )));
+  }
+
+  Widget selectedItem(String name, String category) {
     return Column(
       children: [
-        Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+        // 사진 + 취소 버튼
+        Container(
+          height: 52,
+          width: 52,
+          child: Stack(
+            children: [
+              // 사진
+              Align(
+                  alignment: Alignment.center,
+                  child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: Colors.white))),
+              Align(
+                  alignment: Alignment.topRight,
+                  child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: IconButton(
+                          onPressed: () {
+                            setState(() {
+                              item_selected.remove(name + "/" + category);
+                            });
+                          },
+                          padding: EdgeInsets.all(0.0),
+                          splashRadius: 10,
+                          icon: Icon(Icons.cancel, size: 18, color: Color.fromARGB(255, 235, 88, 40)))))
+            ],
+          ),
+        ),
+        SizedBox(height: 8),
+        // 식재료 이름
+        Text(name, style: inter14Black)
+      ],
+    );
+  }
+
+  Widget oftenItemList() {  //(체크) 자주 사는 항목 없을 때 unfocus 가능하도록 expanded로 채워넣기. "자주 사는 항목" 텍스트도 빼기.
+    // 자주 사는 항목. 아무리 많아도 7개 이하.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         Padding(
             padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 10),
             child: Text("자주 사는 항목", style: inter17)),
@@ -242,18 +333,24 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                   // 카테고리
                   Text(category, style: inter14Black),
                   Expanded(child: Container()),
-                  // 체크 버튼  (체크)(중요) 버튼 눌렀을 때 위에 선택항목들 리스트 박스 뜨고, 다시 누르면 취소될 수 있어야 함. 개별 버튼 어떻게 만들지 고민.
                   SizedBox(
                       height: 20,
                       width: 20,
                       child: TextButton(
                           onPressed: () {
-                            setState(() {});
+                            setState(() {
+                              if (item_selected.contains(name + "/" + category)) {
+                                item_selected.remove(name + "/" + category);
+                              } else {
+                                item_selected.add(name + "/" + category);
+                              }
+                            });
                           },
                           child: Icon(Icons.check, color: Colors.white, size: 16),
                           style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
-                              backgroundColor: colorPoint,
+                              backgroundColor:
+                                  item_selected.contains(name + "/" + category) ? colorPoint : Colors.white,
                               shape: RoundedRectangleBorder(
                                   side: BorderSide(color: colorPoint), borderRadius: BorderRadius.circular(100.0))))),
                 ])),
