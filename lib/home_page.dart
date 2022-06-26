@@ -909,7 +909,10 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                         child: IconButton(
                                           padding: EdgeInsets.all(0),
                                           onPressed: () {
-                                            navigatorKey.currentState?.pushNamed('/member_invite_page');
+                                            navigatorKey.currentState?.pushNamed(
+                                              '/member_invite_page',
+                                              arguments: {"refId": pre_docid},
+                                            );
                                           },
                                           icon: Icon(Icons.settings),
                                           color: Color.fromARGB(128, 34, 34, 34),
@@ -921,7 +924,10 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                         child: IconButton(
                                           padding: EdgeInsets.all(0),
                                           onPressed: () {
-                                            navigatorKey.currentState?.pushNamed('/member_invite_page');
+                                            navigatorKey.currentState?.pushNamed(
+                                              '/member_list_page',
+                                              arguments: {"refId": pre_docid},
+                                            );
                                           },
                                           icon: Icon(Icons.settings),
                                           color: Color.fromARGB(128, 34, 34, 34),
