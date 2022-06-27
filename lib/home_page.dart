@@ -132,7 +132,7 @@ Future<List> ingredientGetDocumentList(String docid, int refPage) async {
       lists.add(element.id);
     });
   } else if (buttonChecked == 2) {
-    // 자주 사는 식재료순(register_count)
+    // 자주 사는 식재료순(register_count) // (체크) 수정 필요
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection("Refrigerators/" + docid + "/Ingredients")
         .where('location', isEqualTo: location)
