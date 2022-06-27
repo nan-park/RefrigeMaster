@@ -9,6 +9,7 @@ import 'ref_add_page.dart';
 import 'food_search_page.dart';
 import 'food_detail_page.dart';
 import 'food_add_page.dart';
+import 'food_detail_edit_page.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart' as kakao; // user 구분
@@ -45,6 +46,7 @@ void main() async {
         '/member_invite_page': (context) => MemberInvitePage(),
         '/member_list_page': (context) => MemberListPage(),
         '/food_edit_page': (context) => FoodEditPage(),
+        '/food_detail_edit_page': (context) => FoodDetailEditPage(),
       },
     ),
   );
