@@ -82,40 +82,16 @@ Future<List> limit_ingredientGetDocumentList(String docid, int refPage) async {
   } else if (refPage == 3) {
     location = "기타";
   }
-  if (buttonChecked == 1) {
-    // 유통기한 임박순(expire_date)
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Refrigerators/" + docid + "/Ingredients")
-        .where('location', isEqualTo: location)
-        .orderBy('expire_date', descending: false)
-        .limit(6)
-        .get();
-    snapshot.docs.forEach((element) {
-      lists.add(element.id);
-    });
-  } else if (buttonChecked == 2) {
-    // 자주 사는 식재료순(register_count)
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Refrigerators/" + docid + "/Ingredients")
-        .where('location', isEqualTo: location)
-        .orderBy('register_count', descending: true)
-        .limit(6)
-        .get();
-    snapshot.docs.forEach((element) {
-      lists.add(element.id);
-    });
-  } else {
-    // 등록순(register_date)
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Refrigerators/" + docid + "/Ingredients")
-        .where('location', isEqualTo: location)
-        .orderBy('register_date', descending: true)
-        .limit(6)
-        .get();
-    snapshot.docs.forEach((element) {
-      lists.add(element.id);
-    });
-  }
+  // 유통기한 임박순(expire_date)
+  QuerySnapshot snapshot = await FirebaseFirestore.instance
+      .collection("Refrigerators/" + docid + "/Ingredients")
+      .where('location', isEqualTo: location)
+      .orderBy('expire_date', descending: false)
+      .limit(6)
+      .get();
+  snapshot.docs.forEach((element) {
+    lists.add(element.id);
+  });
 
   return lists;
 }
