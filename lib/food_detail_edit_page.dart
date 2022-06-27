@@ -24,11 +24,10 @@ Future<Map> getIngredientDoc(String ref_docid, String ing_docid) async {
 }
 
 Future<bool> editIngredientDoc(Map info, String ref_docid, String ing_docid) async {
-  await FirebaseFirestore.instance.collection("Refrigerators/" + ref_docid + "/Ingredients").doc(ing_docid).update({
-    'location': info['location'],
-    'expire_date': info['expire_date'],
-    'amount': info['amount']
-  });
+  await FirebaseFirestore.instance
+      .collection("Refrigerators/" + ref_docid + "/Ingredients")
+      .doc(ing_docid)
+      .update({'location': info['location'], 'expire_date': info['expire_date'], 'amount': info['amount']});
   return true;
 }
 
@@ -62,6 +61,8 @@ class _FoodDetailEditPageState extends State<FoodDetailEditPage> {
                                       width: 24,
                                       height: 24,
                                       child: IconButton(
+                                          splashColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
                                           onPressed: () {
                                             navigatorKey.currentState?.pop();
                                           },
@@ -234,6 +235,8 @@ class _FoodDetailEditPageState extends State<FoodDetailEditPage> {
                             height: 20,
                             width: 20,
                             child: IconButton(
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
                                 //(체크) onPressed => date_picker
                                 onPressed: () async {
                                   final now = DateTime.now();
@@ -279,6 +282,8 @@ class _FoodDetailEditPageState extends State<FoodDetailEditPage> {
                             height: 24,
                             width: 24,
                             child: IconButton(
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
                                 //(체크) onPressed => 개수 1 or 0.5 감소(그렇게 계산된 값이 음수라면 취소)
                                 onPressed: () {
                                   setState(() {
@@ -299,6 +304,8 @@ class _FoodDetailEditPageState extends State<FoodDetailEditPage> {
                             height: 24,
                             width: 24,
                             child: IconButton(
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
                                 onPressed: () {
                                   setState(() {
                                     if (info['half'] && amount >= 0.5) {

@@ -33,6 +33,7 @@ dependencies:
   kakao_flutter_sdk_user: ^1.1.1 # 카카오 로그인
   flutter_localizations:
     sdk: flutter
+  flutter_svg: ^1.0.0
 
 
 
@@ -71,6 +72,9 @@ flutter:
     - src/LoginPageImage.png
     - src/kakao_login_large_wide.png
     - src/down.png
+    - src/my_icon.svg
+    - src/ref_icon.svg
+    - src/calendar_icon.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

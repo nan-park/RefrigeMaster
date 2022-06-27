@@ -70,6 +70,8 @@ class _MemberListPageState extends State<MemberListPage> {
                                 width: 24,
                                 height: 24,
                                 child: IconButton(
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
                                     onPressed: () {
                                       navigatorKey.currentState?.pop();
                                     },
@@ -91,6 +93,8 @@ class _MemberListPageState extends State<MemberListPage> {
                               width: 24,
                               height: 24,
                               child: IconButton(
+                                splashColor: Colors.transparent,
+                                highlightColor: Colors.transparent,
                                 padding: EdgeInsets.all(0),
                                 onPressed: () {
                                   navigatorKey.currentState?.pushNamed(

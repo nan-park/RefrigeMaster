@@ -38,6 +38,8 @@ class _FoodEditPageState extends State<FoodEditPage> {
                                 width: 24,
                                 height: 24,
                                 child: IconButton(
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
                                     onPressed: () {
                                       navigatorKey.currentState?.pop();
                                     },

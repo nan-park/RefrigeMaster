@@ -134,6 +134,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
                                   width: 24,
                                   height: 24,
                                   child: IconButton(
+                                      splashColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
                                       onPressed: () {
                                         navigatorKey.currentState?.pop();
                                       },
@@ -154,6 +156,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
                                   height: 24,
                                   width: 24,
                                   child: IconButton(
+                                      splashColor: Colors.transparent,
+                                      highlightColor: Colors.transparent,
                                       icon: Icon(Icons.check),
                                       padding: EdgeInsets.all(0.0),
                                       onPressed: () async {
@@ -326,6 +330,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
                         height: 20,
                         width: 20,
                         child: IconButton(
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
                             //(체크) onPressed => date_picker
                             onPressed: () async {
                               final now = DateTime.now();
@@ -371,6 +377,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
                         height: 24,
                         width: 24,
                         child: IconButton(
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
                             //(체크) onPressed => 개수 1 or 0.5 감소(그렇게 계산된 값이 음수라면 취소)
                             onPressed: () {
                               setState(() {
@@ -391,6 +399,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
                         height: 24,
                         width: 24,
                         child: IconButton(
+                            splashColor: Colors.transparent,
+                            highlightColor: Colors.transparent,
                             onPressed: () {
                               setState(() {
                                 if (info['half'] && amount >= 0.5) {

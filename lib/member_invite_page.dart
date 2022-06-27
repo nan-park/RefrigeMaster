@@ -65,6 +65,8 @@ class _MemberInvitePageState extends State<MemberInvitePage> {
                                 width: 24,
                                 height: 24,
                                 child: IconButton(
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
                                     onPressed: () {
                                       navigatorKey.currentState?.pop();
                                     },
