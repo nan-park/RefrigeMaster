@@ -113,9 +113,10 @@ class _FoodAddPageState extends State<FoodAddPage> {
           GlobalCupertinoLocalizations.delegate,
         ],
         supportedLocales: const [Locale('ko', 'KR')],
-        home: SafeArea(
-          child: Scaffold(
-              body: Column(
+        home: Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+              child: Column(
             children: [
               //appBar 상단바
               Container(
