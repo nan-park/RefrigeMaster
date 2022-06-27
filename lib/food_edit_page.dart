@@ -9,6 +9,8 @@ class FoodEditPage extends StatefulWidget {
   State<FoodEditPage> createState() => _FoodEditPageState();
 }
 
+bool selectAllChackBox = false;
+
 class _FoodEditPageState extends State<FoodEditPage> {
   @override
   Widget build(BuildContext context) {
@@ -59,6 +61,23 @@ class _FoodEditPageState extends State<FoodEditPage> {
               ),
               Container(
                 height: 56,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Checkbox(
+                      side: MaterialStateBorderSide.resolveWith((states) => BorderSide(width: 1.0, color: colorPoint)),
+                      checkColor: Colors.white,
+                      value: selectAllChackBox,
+                      shape: CircleBorder(),
+                      onChanged: (bool? value) {
+                        setState(() {
+                          selectAllChackBox = value!;
+                        });
+                      },
+                    ),
+                    Text("전체 선택")
+                  ],
+                ),
               ),
             ],
           ),
