@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:refrige_master/backside/app_design_comp.dart';
 import 'package:refrige_master/main.dart';
@@ -59,13 +61,14 @@ class _FoodEditPageState extends State<FoodEditPage> {
                 color: Color.fromARGB(245, 255, 255, 255),
                 height: 55,
               ),
+              // 전체 선택 Layout-------------------------------
               Container(
                 height: 56,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Checkbox(
-                      side: MaterialStateBorderSide.resolveWith((states) => BorderSide(width: 1.0, color: colorPoint)),
+                      side: MaterialStateBorderSide.resolveWith((states) => BorderSide(width: 2.0, color: colorPoint)),
                       checkColor: Colors.white,
                       value: selectAllChackBox,
                       shape: CircleBorder(),
@@ -75,10 +78,23 @@ class _FoodEditPageState extends State<FoodEditPage> {
                         });
                       },
                     ),
-                    Text("전체 선택")
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "전체 선택",
+                          style: TextStyle(color: colorPoint),
+                        ),
+                        SizedBox(height: 4)
+                      ],
+                    )
                   ],
                 ),
               ),
+              // 리스트 Layout-------------------------------
+              // 구분선
+              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+              // 식재료 목록
             ],
           ),
         ),

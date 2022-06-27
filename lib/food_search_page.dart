@@ -81,107 +81,109 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
   Widget build(BuildContext context) {
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: SafeArea(
-            child: Scaffold(
-                body: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(), // 키보드 이외의 영역 선택하면 키보드 사라짐
-          // 전체 영역 div
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              //appBar 상단바
-              Container(
+        home: Scaffold(
+            backgroundColor: Colors.white,
+            body: SafeArea(
+              child: GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(), // 키보드 이외의 영역 선택하면 키보드 사라짐
+                // 전체 영역 div
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Stack(
-                          children: [
-                            // 뒤로가기 버튼
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: IconButton(
-                                      onPressed: () {
-                                        item_selected = []; // 선택 항목 리스트 초기화
-                                        navigatorKey.currentState?.pop();
-                                      },
-                                      padding: EdgeInsets.all(0.0),
-                                      splashRadius: 10,
-                                      icon: Icon(Icons.arrow_back, size: 24))),
-                            ),
-                            // 제목
-                            Align(
-                                alignment: Alignment.center,
-                                child: Container(
-                                    height: 24,
-                                    child: Text("품목추가", style: interBold17))), // (체크) fontweight Semibold로 바꾸기
-                            // 완료 버튼 (체크) 디자인과 별개로 일단 넣어봤음. 나중에 디자인 확정되면 바꿀 수도?
-                            Align(
-                                alignment: Alignment.centerRight,
-                                child: SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: IconButton(
-                                      icon: Icon(Icons.check),
-                                      padding: EdgeInsets.all(0.0),
-                                      onPressed: () {
-                                        navigatorKey.currentState?.pushNamed('/food_add_page', arguments: {
-                                          "item_selected": item_selected
-                                        }); //(체크) 직접 입력한 경우 카테고리가 없어서 "수박/" 이런식으로 될 수 있으니 예외 처리 주의.
-                                      }),
-                                ))
-                          ],
-                        )),
-                  ],
-                ),
-                color: Color.fromARGB(245, 255, 255, 255),
-                height: 55,
-              ),
-              // 검색창
-              Container(
-                  height: 56,
-                  color: Color.fromARGB(245, 255, 255, 255),
-                  child: Padding(
-                    padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 4, bottom: 10),
-                    child: TextField(
-                      autofocus: true,
-                      textAlignVertical: TextAlignVertical.center,
-                      decoration: InputDecoration(
-                          hintText: "품목명을 입력하세요",
-                          hintStyle: inter14Grey,
-                          border: InputBorder.none,
-                          hintMaxLines: 1,
-                          fillColor: Color.fromARGB(255, 239, 241, 245),
-                          filled: true),
-                      onChanged: (text) {
-                        // (체크) 리스너로 바꿀까..?
-                        setState(() {
-                          inputText = text;
-                        });
-                      },
-                    ),
-                  )),
-              // 구분선
-              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
-              // 선택 항목(item_selected 비어있으면 안 나옴)
-              item_selected.isNotEmpty ? selectedItemBox() : Container(),
-              Expanded(
-                child: SingleChildScrollView(
-                    child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 식재료 리스트(자주 사는 항목)  //(체크) 자주 산 항목 하나도 없으면 전체 항목 보여주자
-                    inputText == "" ? oftenItemList() : searchItemList(inputText)
+                    //appBar 상단바
+                    Container(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Stack(
+                                children: [
+                                  // 뒤로가기 버튼
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: IconButton(
+                                            onPressed: () {
+                                              item_selected = []; // 선택 항목 리스트 초기화
+                                              navigatorKey.currentState?.pop();
+                                            },
+                                            padding: EdgeInsets.all(0.0),
+                                            splashRadius: 10,
+                                            icon: Icon(Icons.arrow_back, size: 24))),
+                                  ),
+                                  // 제목
+                                  Align(
+                                      alignment: Alignment.center,
+                                      child: Container(
+                                          height: 24,
+                                          child: Text("품목추가", style: interBold17))), // (체크) fontweight Semibold로 바꾸기
+                                  // 완료 버튼 (체크) 디자인과 별개로 일단 넣어봤음. 나중에 디자인 확정되면 바꿀 수도?
+                                  Align(
+                                      alignment: Alignment.centerRight,
+                                      child: SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: IconButton(
+                                            icon: Icon(Icons.check),
+                                            padding: EdgeInsets.all(0.0),
+                                            onPressed: () {
+                                              navigatorKey.currentState?.pushNamed('/food_add_page', arguments: {
+                                                "item_selected": item_selected
+                                              }); //(체크) 직접 입력한 경우 카테고리가 없어서 "수박/" 이런식으로 될 수 있으니 예외 처리 주의.
+                                            }),
+                                      ))
+                                ],
+                              )),
+                        ],
+                      ),
+                      color: Color.fromARGB(245, 255, 255, 255),
+                      height: 55,
+                    ),
+                    // 검색창
+                    Container(
+                        height: 56,
+                        color: Color.fromARGB(245, 255, 255, 255),
+                        child: Padding(
+                          padding: EdgeInsets.only(left: 16.0, right: 16.0, top: 4, bottom: 10),
+                          child: TextField(
+                            autofocus: true,
+                            textAlignVertical: TextAlignVertical.center,
+                            decoration: InputDecoration(
+                                hintText: "품목명을 입력하세요",
+                                hintStyle: inter14Grey,
+                                border: InputBorder.none,
+                                hintMaxLines: 1,
+                                fillColor: Color.fromARGB(255, 239, 241, 245),
+                                filled: true),
+                            onChanged: (text) {
+                              // (체크) 리스너로 바꿀까..?
+                              setState(() {
+                                inputText = text;
+                              });
+                            },
+                          ),
+                        )),
+                    // 구분선
+                    Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+                    // 선택 항목(item_selected 비어있으면 안 나옴)
+                    item_selected.isNotEmpty ? selectedItemBox() : Container(),
+                    Expanded(
+                      child: SingleChildScrollView(
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 식재료 리스트(자주 사는 항목)  //(체크) 자주 산 항목 하나도 없으면 전체 항목 보여주자
+                          inputText == "" ? oftenItemList() : searchItemList(inputText)
+                        ],
+                      )),
+                    )
                   ],
-                )),
-              )
-            ],
-          ),
-        ))));
+                ),
+              ),
+            )));
   }
 
   Widget selectedItemBox() {
