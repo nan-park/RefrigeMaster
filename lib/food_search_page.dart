@@ -41,8 +41,8 @@ Future<Map> oftenGetDocument() async {
 Future<List> templateGetDocumentList(String inputText) async {
   List<String> lists = [];
   QuerySnapshot snapshot =
-      await FirebaseFirestore.instance.collection("Templates").where("name", isGreaterThanOrEqualTo: inputText).get();
-  // (현재)(체크) 검색은 되는데 비슷한 것까지 다 가져옴. 없으면 검색 결과 없다고 떠야 함.
+      await FirebaseFirestore.instance.collection("Templates").where("name", isEqualTo: inputText).get();
+  // (현재)(체크) 검색은 되는데 비슷한 것까지 다 가져옴. 임시로 isEqualTo로 바꿈.
   snapshot.docs.forEach((element) {
     lists.add(element.id);
   });
@@ -131,7 +131,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                                       onPressed: () {
                                         navigatorKey.currentState?.pushNamed('/food_add_page', arguments: {
                                           "item_selected": item_selected
-                                        }); //(체크) 직접 입력한 경우 카테고리가 없어서 "수박/" 이런식으로 될 수도 있으니 예외 처리 주의.
+                                        }); //(체크) 직접 입력한 경우 카테고리가 없어서 "수박/" 이런식으로 될 수 있으니 예외 처리 주의.
                                       }),
                                 ))
                           ],
@@ -258,7 +258,8 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
     );
   }
 
-  Widget oftenItemList() {  //(체크) 자주 사는 항목 없을 때 unfocus 가능하도록 expanded로 채워넣기. "자주 사는 항목" 텍스트도 빼기.
+  Widget oftenItemList() {
+    //(체크) 자주 사는 항목 없을 때 unfocus 가능하도록 expanded로 채워넣기. "자주 사는 항목" 텍스트도 빼기.
     // 자주 사는 항목. 아무리 많아도 7개 이하.
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

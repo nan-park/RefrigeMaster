@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -5,6 +7,61 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:refrige_master/backside/app_design_comp.dart';
 import 'package:refrige_master/food_search_page.dart';
 import 'main.dart';
+
+Future<bool> addIngredients(List set) async {
+  String docid = "";
+  Map map_list = {};
+  List docid_list = [];
+
+  // 이전에 추가했던 식재료들 DB 확인
+  final often_snapshot = await FirebaseFirestore.instance
+      .collection("Users/" + FirebaseAuth.instance.currentUser!.uid + "/OftenItems")
+      .get();
+  often_snapshot.docs.forEach((element) {
+    //  element.id == 식재료이름
+    map_list[element.id] = element.data();
+  });
+
+  // 식재료 추가
+  final snapshot = await FirebaseFirestore.instance
+      .collection("Refrigerators")
+      .where('present_member', arrayContains: FirebaseAuth.instance.currentUser?.uid)
+      .get();
+  for (int i = 0; i < snapshot.docs.length; i++) {
+    docid = snapshot.docs[i].id;
+  }
+  for (int i = 0; i < set.length; i++) {
+    Map temp = set[i];
+    await FirebaseFirestore.instance.collection("Refrigerators/" + docid + "/Ingredients").add({
+      'amount': temp['amount'],
+      'category': temp['category'],
+      'expire_date': Timestamp.fromDate(temp['expire_date']),
+      'location': temp['location'],
+      'memo': "",
+      'name': temp['name'],
+      'register_date': Timestamp.now()
+    });
+    // 추가 횟수 업데이트할 식재료 리스트
+    // map_list.add({'name': map['name'], 'category': map['category']});
+    // map_list[map['name']] = {'category': map['category']};
+    if (map_list.containsKey(temp['name'])) {
+      //(체크) 이미 이름이 추가돼있다면
+      int new_count = map_list[temp['name']]['register_count'] + 1;
+      await FirebaseFirestore.instance
+          .collection("Users/" + FirebaseAuth.instance.currentUser!.uid + "/OftenItems")
+          .doc(temp['name'])
+          .update({'register_count': new_count});
+    } else {
+      await FirebaseFirestore.instance
+          .collection("Users/" + FirebaseAuth.instance.currentUser!.uid + "/OftenItems")
+          .doc(temp['name'])
+          .set({'register_count': 1, 'category': temp['category']});
+    }
+  }
+  print("addIngredients done");
+
+  return true;
+}
 
 class FoodAddPage extends StatefulWidget {
   FoodAddPage({Key? key}) : super(key: key);
@@ -21,29 +78,38 @@ class _FoodAddPageState extends State<FoodAddPage> {
   Widget build(BuildContext context) {
     // 변수들(빌드 이후)
     final args = ModalRoute.of(context)!.settings.arguments as Map; //item_selected
-    List item_selected = args['item_selected'];
+    List item_list = args['item_selected'];
     DateTime? date_time;
     List temp = [];
-    for (int i = 0; i < item_selected.length; i++) {
-      temp = item_selected[i].split("/");
-      // 직접추가면 ["식재료이름", ""]
-      if (temp[1] == "") {
-        temp[1] = "기타";
+    print(setting);
+    if (setting.length != item_list.length) {
+      setting = [];
+      // 조건문 있어야 리스트 계속 추가 안 됨
+      for (int i = 0; i < item_list.length; i++) {
+        temp = item_list[i].split("/");
+        // 직접추가면 ["식재료이름", ""]
+        if (temp[1] == "") {
+          temp[1] = "기타";
+        } // (체크) 원래는 다 선택할 수 있도록 만드는 건데, 일단 임시로 '기타'로 고정함.
+        setting.add({
+          'name': temp[0],
+          'category': temp[1],
+          'location': "냉장",
+          'expire_date': date_time,
+          'amount': 0.0,
+          'half': false
+        });
       }
-      setting.add({
-        'name': temp[0],
-        'category': temp[1],
-        'location': "냉장",
-        'expire_date': date_time,
-        'amount': 0.0,
-        'half': false
-      });
-      //  [{name: 사과, category: 과일, location: 냉장, expire_date: null(TimeStamp), amount: 0, half: false}]
     }
+    //  [{name: 사과, category: 과일, location: 냉장, expire_date: null(TimeStamp), amount: 0, half: false}]
     return MaterialApp(
         debugShowCheckedModeBanner: false,
         // 캘린더 한국어로 바꾸기
-        localizationsDelegates: const [GlobalMaterialLocalizations.delegate, GlobalWidgetsLocalizations.delegate],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
         supportedLocales: const [Locale('ko', 'KR')],
         home: SafeArea(
           child: Scaffold(
@@ -78,6 +144,26 @@ class _FoodAddPageState extends State<FoodAddPage> {
                                 child: Container(
                                     height: 24,
                                     child: Text("품목설정", style: interBold17))), // (체크) fontweight Semibold로 바꾸기
+                            // 완료 버튼 (체크) 디자인과 별개로 일단 넣어봤음. 나중에 디자인 확정되면 바꿀 수도?
+                            Align(
+                                alignment: Alignment.centerRight,
+                                child: SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: IconButton(
+                                      icon: Icon(Icons.check),
+                                      padding: EdgeInsets.all(0.0),
+                                      onPressed: () async {
+                                        // setting 초기화하고 식재료 현재 냉장고(present_member)에 추가한 채로 home_page로 돌아가기
+                                        if (await addIngredients(setting)) {
+                                          setting = [];
+                                          navigatorKey.currentState
+                                              ?.pushNamedAndRemoveUntil('/home_page', (route) => false);
+                                              item_selected = [];
+                                          //(체크) food_search_page의 item_selected도 초기화하는 방법이 없을까?
+                                        }
+                                      }),
+                                ))
                           ],
                         )),
                   ],
@@ -94,13 +180,13 @@ class _FoodAddPageState extends State<FoodAddPage> {
         ));
   }
 
-  Widget settingList(List<Map> setting) {
+  Widget settingList(List<Map> set) {
     return Column(
       children: [
-        for (int i = 0; i < item_selected.length; i++)
+        for (int i = 0; i < set.length; i++)
           Column(
             children: [
-              item(i, setting[i]),
+              item(i, set[i]),
               // 구분선
               Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey)
             ],
@@ -212,13 +298,16 @@ class _FoodAddPageState extends State<FoodAddPage> {
                             onPressed: () async {
                               final now = DateTime.now();
                               final afterMonth = now.add(Duration(days: 30 * 12 * 20));
-                              setting[seq]['expire_date'] = (await showDatePicker(  // (체크) 캘린더 한국어로 바꾸기
+                              final date = await showDatePicker(
+                                // (체크) 캘린더 한국어로 바꾸기  //(현재) 여기서 리스트가 배가 됨
                                 context: navigatorKey.currentState?.context as BuildContext,
                                 initialDate: now,
                                 firstDate: DateTime(now.year, now.month, now.day),
                                 lastDate: DateTime(afterMonth.year, afterMonth.month, afterMonth.day),
-                              ))!;
-                              setState(() {});
+                              );
+                              setState(() {
+                                setting[seq]['expire_date'] = date;
+                              });
                             },
                             icon: Icon(Icons.calendar_today, size: 20),
                             padding: EdgeInsets.all(0))),
