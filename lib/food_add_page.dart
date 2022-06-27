@@ -72,7 +72,6 @@ class FoodAddPage extends StatefulWidget {
 
 // 전역 변수
 
-
 class _FoodAddPageState extends State<FoodAddPage> {
   List<Map<String, dynamic>> setting = [];
   bool executed = false;
@@ -84,7 +83,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
     DateTime? date_time;
     List temp = [];
     print(setting);
-    if (!executed) {  // 처음 실행
+    if (!executed) {
+      // 처음 실행
       setting = [];
       for (int i = 0; i < item_list.length; i++) {
         temp = item_list[i].split("/");
@@ -156,14 +156,42 @@ class _FoodAddPageState extends State<FoodAddPage> {
                                       icon: Icon(Icons.check),
                                       padding: EdgeInsets.all(0.0),
                                       onPressed: () async {
-                                        // setting 초기화하고 식재료 현재 냉장고(present_member)에 추가한 채로 home_page로 돌아가기
-                                        if (await addIngredients(setting)) {
-                                          setting = [];
-                                          navigatorKey.currentState
-                                              ?.pushNamedAndRemoveUntil('/home_page', (route) => false);
-                                          item_selected = [];
-                                          executed = false;
-                                          //(체크) food_search_page의 item_selected도 초기화하는 방법이 없을까?
+                                        // 유통기한, 개수 수정 안했으면 못 넘어가게 하기.(팝업창)
+                                        bool complete = true;
+                                        setting.forEach((element) {
+                                          if (element['expire_date'] == null) {
+                                            complete = false;
+                                          }
+                                          if (element['amount'] == 0) {
+                                            complete = false;
+                                          }
+                                        });
+                                        if (complete) {
+                                          // setting 초기화하고 식재료 현재 냉장고(present_member)에 추가한 채로 home_page로 돌아가기
+                                          if (await addIngredients(setting)) {
+                                            setting = [];
+                                            navigatorKey.currentState
+                                                ?.pushNamedAndRemoveUntil('/home_page', (route) => false);
+                                            item_selected = [];
+                                            executed = false;
+                                            //(체크) food_search_page의 item_selected도 초기화하는 방법이 없을까?
+                                          }
+                                        } else {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                content: Text("아직 설정하지 않은 항목이 있습니다."),
+                                                actions: [
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child: Text("확인"))
+                                                ],
+                                              );
+                                            },
+                                          );
                                         }
                                       }),
                                 ))
