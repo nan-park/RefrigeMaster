@@ -978,14 +978,13 @@ class _RefDetailPageState extends State<RefDetailPage> {
                             height: 54,
                             child: Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                                child: Stack(
+                                child: Row(
                                   children: [
                                     Align(
                                       // 식재료 소팅 버튼(bottom sheet)
                                       // (체크) 커스텀 이미지랑 같이 넣기
                                       alignment: Alignment.centerLeft,
                                       child: Container(
-                                        width: 150,
                                         child: ElevatedButton(
                                           onPressed: () async {
                                             // (체크) 순서정렬 잘 되는지 확인
@@ -1020,7 +1019,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                             ],
                                           ),
                                           style: ElevatedButton.styleFrom(
-                                            padding: EdgeInsets.zero,
+                                            padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
                                             primary: Color.fromARGB(0, 0, 0, 0),
                                             elevation: 0.0,
                                             side: BorderSide(
@@ -1034,6 +1033,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                         ),
                                       ),
                                     ),
+                                    Spacer(),
                                     Align(
                                       // 편집 버튼(식재료 삭제)
                                       alignment: Alignment.centerRight,
