@@ -130,7 +130,11 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                                       child: IconButton(
                                           padding: EdgeInsets.all(0),
                                           onPressed: () async {
-                                            await navigatorKey.currentState?.pushNamed('/food_detail_edit_page');
+                                            await navigatorKey.currentState?.pushNamed('/food_detail_edit_page',
+                                                arguments: {
+                                                  'ref_docid': args['ref_docid'],
+                                                  'ing_docid': args['ing_docid']
+                                                });
                                             setState(() {});
                                           },
                                           icon: Icon(Icons.create),
@@ -148,108 +152,112 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             FutureBuilder(
                 future: getIngredientDoc(args['ref_docid'], args['ing_docid']),
                 builder: (context, AsyncSnapshot snapshot) {
-                  name = snapshot.data.values.elementAt(0)['name'];
-                  DateTime expire_date = snapshot.data.values.elementAt(0)['expire_date'].toDate();
-                  int dDay = expire_date.difference(DateTime.now()).inDays.toInt();
-                  String dDayString = ""; // 디데이 String
-                  String amountString = ""; // 개수 String
-                  double amount = snapshot.data.values.elementAt(0)['amount'].toDouble();
-                  if (dDay > 0) {
-                    dDayString = "D - " + dDay.toString();
-                  } else if (dDay == 0) {
-                    dDayString = "D - Day";
-                  } else if (dDay < 0) {
-                    int dDay_minus = dDay * (-1);
-                    dDayString = "D + " + dDay_minus.toString();
-                  }
-                  if (amount < 0) {
-                    // 많음/보통/적음/매우적음
-                    switch ((amount * (-1)).toInt()) {
-                      case 1:
-                        amountString = "매우 적음";
-                        break;
-                      case 2:
-                        amountString = "적음";
-                        break;
-                      case 3:
-                        amountString = "보통";
-                        break;
-                      case 4:
-                        amountString = "많음";
-                        break;
+                  if (snapshot.hasData) {
+                    name = snapshot.data.values.elementAt(0)['name'];
+                    DateTime expire_date = snapshot.data.values.elementAt(0)['expire_date'].toDate();
+                    int dDay = expire_date.difference(DateTime.now()).inDays.toInt();
+                    String dDayString = ""; // 디데이 String
+                    String amountString = ""; // 개수 String
+                    double amount = snapshot.data.values.elementAt(0)['amount'].toDouble();
+                    if (dDay > 0) {
+                      dDayString = "D - " + dDay.toString();
+                    } else if (dDay == 0) {
+                      dDayString = "D - Day";
+                    } else if (dDay < 0) {
+                      int dDay_minus = dDay * (-1);
+                      dDayString = "D + " + dDay_minus.toString();
                     }
-                  } else if (amount % 1 == 0) {
-                    // 개수 string(정수면 .0 빼기)
-                    int num = amount.toInt();
-                    amountString = num.toString() + "개";
+                    if (amount < 0) {
+                      // 많음/보통/적음/매우적음
+                      switch ((amount * (-1)).toInt()) {
+                        case 1:
+                          amountString = "매우 적음";
+                          break;
+                        case 2:
+                          amountString = "적음";
+                          break;
+                        case 3:
+                          amountString = "보통";
+                          break;
+                        case 4:
+                          amountString = "많음";
+                          break;
+                      }
+                    } else if (amount % 1 == 0) {
+                      // 개수 string(정수면 .0 빼기)
+                      int num = amount.toInt();
+                      amountString = num.toString() + "개";
+                    } else {
+                      amountString = amount.toString() + "개";
+                    }
+                    return Padding(
+                        padding: EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                // 식재료 사진
+                                Container(
+                                    width: 74,
+                                    height: 74,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(100),
+                                        color: Color.fromARGB(255, 242, 242, 246))),
+                                SizedBox(width: 10),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // 카테고리 박스
+                                    category_box(snapshot.data.values.elementAt(0)['category']),
+                                    SizedBox(height: 6),
+                                    // 식재료 이름 (체크) info 있으면 옆에 아이콘 있도록
+                                    Text(snapshot.data.values.elementAt(0)['name'],
+                                        style: TextStyle(fontSize: 18, fontFamily: "Inter")),
+                                    SizedBox(height: 8),
+                                    // 디데이(D-Day)
+                                    Text(dDayString,
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontFamily: "Inter",
+                                            fontWeight: FontWeight.bold,
+                                            color: dDay < 4 ? colorRed : colorBlue)), //(체크) semi bold
+                                  ],
+                                )
+                              ],
+                            ),
+                            SizedBox(height: 37),
+                            // 식재료 정보 리스트
+                            Column(children: [
+                              itemBox("보관장소", snapshot.data.values.elementAt(0)['location']),
+                              itemBox(
+                                  "등록일",
+                                  intl.DateFormat('yyyy.MM.dd')
+                                      .format(snapshot.data.values.elementAt(0)['register_date'].toDate())),
+                              itemBox(
+                                  "유통기한",
+                                  intl.DateFormat('yyyy.MM.dd')
+                                      .format(snapshot.data.values.elementAt(0)['expire_date'].toDate())),
+                              itemBox("개수", amountString),
+                            ]),
+                            SizedBox(height: 24),
+                            // 장보러가기 버튼 (체크) onPressed
+                            SizedBox(
+                              height: 50,
+                              width: MediaQuery.of(context).size.width - 46,
+                              child: TextButton(
+                                  onPressed: () {},
+                                  child: Text("장 보러 가기", style: inter17White),
+                                  style: ButtonStyle(
+                                      backgroundColor: MaterialStateProperty.all(colorPoint),
+                                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))))),
+                            ),
+                            // 메모 (체크) 추가 해야함
+                          ],
+                        ));
                   } else {
-                    amountString = amount.toString() + "개";
+                    return Container();
                   }
-                  return Padding(
-                      padding: EdgeInsets.all(24.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              // 식재료 사진
-                              Container(
-                                  width: 74,
-                                  height: 74,
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(100),
-                                      color: Color.fromARGB(255, 242, 242, 246))),
-                              SizedBox(width: 10),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // 카테고리 박스
-                                  category_box(snapshot.data.values.elementAt(0)['category']),
-                                  SizedBox(height: 6),
-                                  // 식재료 이름 (체크) info 있으면 옆에 아이콘 있도록
-                                  Text(snapshot.data.values.elementAt(0)['name'],
-                                      style: TextStyle(fontSize: 18, fontFamily: "Inter")),
-                                  SizedBox(height: 8),
-                                  // 디데이(D-Day)
-                                  Text(dDayString,
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontFamily: "Inter",
-                                          fontWeight: FontWeight.bold,
-                                          color: dDay < 4 ? colorRed : colorBlue)), //(체크) semi bold
-                                ],
-                              )
-                            ],
-                          ),
-                          SizedBox(height: 37),
-                          // 식재료 정보 리스트
-                          Column(children: [
-                            itemBox("보관장소", snapshot.data.values.elementAt(0)['location']),
-                            itemBox(
-                                "등록일",
-                                intl.DateFormat('yyyy.MM.dd')
-                                    .format(snapshot.data.values.elementAt(0)['register_date'].toDate())),
-                            itemBox(
-                                "유통기한",
-                                intl.DateFormat('yyyy.MM.dd')
-                                    .format(snapshot.data.values.elementAt(0)['expire_date'].toDate())),
-                            itemBox("개수", amountString),
-                          ]),
-                          SizedBox(height: 24),
-                          // 장보러가기 버튼 (체크) onPressed
-                          SizedBox(
-                            height: 50,
-                            width: MediaQuery.of(context).size.width - 46,
-                            child: TextButton(
-                                onPressed: () {},
-                                child: Text("장 보러 가기", style: inter17White),
-                                style: ButtonStyle(
-                                    backgroundColor: MaterialStateProperty.all(colorPoint),
-                                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))))),
-                          ),
-                          // 메모 (체크) 추가 해야함
-                        ],
-                      ));
                 })
           ],
         ))));
