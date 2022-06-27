@@ -23,7 +23,7 @@ Future<Map> getIngredientDoc(String ref_docid, String ing_docid) async {
   return map;
 }
 
-Future<bool> editIngredient(Map info, String ref_docid, String ing_docid) async {
+Future<bool> editIngredientDoc(Map info, String ref_docid, String ing_docid) async {
   await FirebaseFirestore.instance.collection("Refrigerators/" + ref_docid + "/Ingredients").doc(ing_docid).update({
     'location': info['location'],
     'expire_date': info['expire_date'],
@@ -88,7 +88,7 @@ class _FoodDetailEditPageState extends State<FoodDetailEditPage> {
                                                 child: Text("완료", style: inter13Blue),
                                                 onPressed: () async {
                                                   // (체크) onPressed
-                                                  if (await editIngredient(
+                                                  if (await editIngredientDoc(
                                                       info, args['ref_docid'], args['ing_docid'])) {
                                                     navigatorKey.currentState?.pop();
                                                   }
