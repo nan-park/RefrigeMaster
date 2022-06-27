@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:refrige_master/food_edit_page.dart';
 import 'package:refrige_master/member_invite_page.dart';
 import 'package:refrige_master/member_list_page.dart';
 
@@ -43,6 +44,7 @@ void main() async {
         '/food_add_page': (context) => FoodAddPage(),
         '/member_invite_page': (context) => MemberInvitePage(),
         '/member_list_page': (context) => MemberListPage(),
+        '/food_edit_page': (context) => FoodEditPage(),
       },
     ),
   );
