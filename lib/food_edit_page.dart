@@ -1,0 +1,69 @@
+import 'package:flutter/material.dart';
+import 'package:refrige_master/backside/app_design_comp.dart';
+import 'package:refrige_master/main.dart';
+
+class FoodEditPage extends StatefulWidget {
+  FoodEditPage({Key? key}) : super(key: key);
+
+  @override
+  State<FoodEditPage> createState() => _FoodEditPageState();
+}
+
+class _FoodEditPageState extends State<FoodEditPage> {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Container(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Stack(
+                        children: [
+                          // 뒤로가기 버튼
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: IconButton(
+                                    onPressed: () {
+                                      navigatorKey.currentState?.pop();
+                                    },
+                                    padding: EdgeInsets.all(0.0),
+                                    splashRadius: 10,
+                                    icon: Icon(Icons.close_rounded, size: 24))),
+                          ),
+                          // 제목
+                          Align(
+                            alignment: Alignment.center,
+                            child: Container(
+                              height: 24,
+                              child: Text("냉장고 이름", style: interBold17),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                color: Color.fromARGB(245, 255, 255, 255),
+                height: 55,
+              ),
+              Container(
+                height: 56,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

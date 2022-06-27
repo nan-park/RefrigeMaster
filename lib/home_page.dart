@@ -997,7 +997,10 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                       alignment: Alignment.centerRight,
                                       child: TextButton(
                                           child: Text("편집", style: inter14Black),
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            print("asdfasdf");
+                                            navigatorKey.currentState?.pushNamed("/food_edit_page");
+                                          },
                                           style: TextButton.styleFrom(padding: EdgeInsets.zero)),
                                     )
                                   ],
