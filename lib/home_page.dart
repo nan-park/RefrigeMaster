@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_svg/svg.dart';
 
 import 'package:refrige_master/backside/app_design_comp.dart';
 import 'main.dart';
@@ -203,35 +204,50 @@ class _HomePageState extends State<HomePage> {
         bottomNavigationBar: SafeArea(
           child: Container(
             height: 55,
-            child: BottomNavigationBar(
-              elevation: 0.0,
-              backgroundColor: Colors.white,
-              selectedLabelStyle: const TextStyle(
-                fontSize: 10,
-                fontFamily: 'Inter',
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
               ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 10,
-                fontFamily: 'Inter',
+              child: BottomNavigationBar(
+                elevation: 0.0,
+                backgroundColor: Colors.white,
+                selectedLabelStyle: const TextStyle(
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                ),
+                selectedItemColor: colorPoint,
+                unselectedItemColor: Color.fromARGB(127, 34, 34, 34),
+                onTap: _onTap,
+                currentIndex: _currentIndex,
+                items: [
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(
+                      "src/ref_icon.svg",
+                      color: _currentIndex == 0 ? colorPoint : Color.fromARGB(127, 34, 34, 34),
+                    ),
+                    label: ('냉장고'),
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(
+                      "src/calendar_icon.svg",
+                      color: _currentIndex == 1 ? colorPoint : Color.fromARGB(127, 34, 34, 34),
+                    ),
+                    label: ('식단기록'),
+                  ),
+                  BottomNavigationBarItem(
+                    icon: SvgPicture.asset(
+                      "src/my_icon.svg",
+                      color: _currentIndex == 2 ? colorPoint : Color.fromARGB(127, 34, 34, 34),
+                    ),
+                    label: ('마이페이지'),
+                  ),
+                ],
               ),
-              selectedItemColor: colorPoint,
-              unselectedItemColor: Color.fromARGB(127, 34, 34, 34),
-              onTap: _onTap,
-              currentIndex: _currentIndex,
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.question_answer_outlined),
-                  label: ('냉장고'),
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.calendar_today_outlined),
-                  label: ('식단기록'),
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.question_answer_outlined),
-                  label: ('마이페이지'),
-                ),
-              ],
             ),
           ),
         ),
@@ -284,6 +300,8 @@ class _RefTapState extends State<RefTap> {
                           width: 24,
                           height: 24,
                           child: IconButton(
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
                               padding: EdgeInsets.zero,
                               onPressed: () {},
                               icon: Icon(Icons.notifications_none, size: 24))),
@@ -310,6 +328,8 @@ class _RefTapState extends State<RefTap> {
                       SizedBox(
                           width: 16,
                           child: IconButton(
+                              splashColor: Colors.transparent,
+                              highlightColor: Colors.transparent,
                               onPressed: () {},
                               icon: Icon(
                                 Icons.arrow_forward_ios,
@@ -359,6 +379,7 @@ class _RefTapState extends State<RefTap> {
                             },
                             child: Text("냉장고 추가하기", style: inter17White),
                             style: TextButton.styleFrom(
+                                splashFactory: NoSplash.splashFactory,
                                 backgroundColor: colorPoint,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)))),
                       )
@@ -388,6 +409,8 @@ class _RefTapState extends State<RefTap> {
                                     child: Transform.rotate(
                                       angle: 90 * math.pi / 180,
                                       child: IconButton(
+                                          splashColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
                                           padding: EdgeInsets.all(0.0),
                                           onPressed: () async {
                                             if (await refAddBottomSheet(pre_docid)) {
@@ -457,6 +480,7 @@ class _RefTapState extends State<RefTap> {
                                         color: refPageSelected == 1 ? Colors.white : Colors.blue,
                                       )),
                                   style: TextButton.styleFrom(
+                                      splashFactory: NoSplash.splashFactory,
                                       backgroundColor:
                                           refPageSelected == 1 ? Colors.blue : Color.fromARGB(255, 242, 242, 246),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50))),
@@ -478,6 +502,7 @@ class _RefTapState extends State<RefTap> {
                                         color: refPageSelected == 2 ? Colors.white : Colors.blue,
                                       )),
                                   style: TextButton.styleFrom(
+                                      splashFactory: NoSplash.splashFactory,
                                       backgroundColor:
                                           refPageSelected == 2 ? Colors.blue : Color.fromARGB(255, 242, 242, 246),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50))),
@@ -499,6 +524,7 @@ class _RefTapState extends State<RefTap> {
                                         color: refPageSelected == 3 ? Colors.white : Colors.blue,
                                       )),
                                   style: TextButton.styleFrom(
+                                      splashFactory: NoSplash.splashFactory,
                                       backgroundColor:
                                           refPageSelected == 3 ? Colors.blue : Color.fromARGB(255, 242, 242, 246),
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50))),
@@ -640,6 +666,7 @@ class _RefTapState extends State<RefTap> {
                                         },
                                         child: Text("냉장고 추가하기", style: inter17White),
                                         style: TextButton.styleFrom(
+                                            splashFactory: NoSplash.splashFactory,
                                             backgroundColor: colorPoint,
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)))),
                                   )
@@ -825,6 +852,8 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                   width: 24,
                                   height: 24,
                                   child: IconButton(
+                                    splashColor: Colors.transparent,
+                                    highlightColor: Colors.transparent,
                                     onPressed: () {
                                       Navigator.of(context).pop();
                                     },
@@ -847,6 +876,8 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                       width: 24,
                                       height: 24,
                                       child: IconButton(
+                                          splashColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
                                           padding: EdgeInsets.all(0.0),
                                           onPressed: () async {
                                             if (await refAddBottomSheet(pre_docid)) {
@@ -874,6 +905,8 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                           width: 24,
                                           height: 24,
                                           child: IconButton(
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
                                               padding: EdgeInsets.all(0),
                                               onPressed: () {},
                                               icon: Icon(Icons.search),
@@ -885,6 +918,8 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                         width: 24,
                                         height: 24,
                                         child: IconButton(
+                                          splashColor: Colors.transparent,
+                                          highlightColor: Colors.transparent,
                                           padding: EdgeInsets.all(0),
                                           onPressed: () {
                                             navigatorKey.currentState?.pushNamed(
@@ -916,36 +951,42 @@ class _RefDetailPageState extends State<RefDetailPage> {
                     children: [
                       Expanded(
                         child: Container(
-                            child: TextButton(
-                          child: Text("냉장", style: inter14Blue),
-                          onPressed: () {
-                            setState(() {
-                              refPageSelected = 1;
-                            });
-                          },
-                        )),
+                          child: TextButton(
+                            child: Text("냉장", style: inter14Blue),
+                            onPressed: () {
+                              setState(() {
+                                refPageSelected = 1;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(splashFactory: NoSplash.splashFactory),
+                          ),
+                        ),
                       ),
                       Expanded(
                         child: Container(
-                            child: TextButton(
-                          child: Text("냉동", style: inter14Blue),
-                          onPressed: () {
-                            setState(() {
-                              refPageSelected = 2;
-                            });
-                          },
-                        )),
+                          child: TextButton(
+                            child: Text("냉동", style: inter14Blue),
+                            onPressed: () {
+                              setState(() {
+                                refPageSelected = 2;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(splashFactory: NoSplash.splashFactory),
+                          ),
+                        ),
                       ),
                       Expanded(
                         child: Container(
-                            child: TextButton(
-                          child: Text("기타", style: inter14Blue),
-                          onPressed: () {
-                            setState(() {
-                              refPageSelected = 3;
-                            });
-                          },
-                        )),
+                          child: TextButton(
+                            child: Text("기타", style: inter14Blue),
+                            onPressed: () {
+                              setState(() {
+                                refPageSelected = 3;
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(splashFactory: NoSplash.splashFactory),
+                          ),
+                        ),
                       ),
                     ],
                   )),
@@ -1026,6 +1067,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                               color: Color.fromARGB(40, 34, 34, 34),
                                               width: 1,
                                             ),
+                                            splashFactory: NoSplash.splashFactory,
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(10),
                                             ),
@@ -1038,11 +1080,15 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                       // 편집 버튼(식재료 삭제)
                                       alignment: Alignment.centerRight,
                                       child: TextButton(
-                                          child: Text("편집", style: inter14Black),
-                                          onPressed: () {
-                                            navigatorKey.currentState?.pushNamed("/food_edit_page");
-                                          },
-                                          style: TextButton.styleFrom(padding: EdgeInsets.zero)),
+                                        child: Text("편집", style: inter14Black),
+                                        onPressed: () {
+                                          navigatorKey.currentState?.pushNamed("/food_edit_page");
+                                        },
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.zero,
+                                          splashFactory: NoSplash.splashFactory,
+                                        ),
+                                      ),
                                     )
                                   ],
                                 ))),
@@ -1175,6 +1221,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                         },
                                         child: Text("냉장고 추가하기", style: inter17White),
                                         style: TextButton.styleFrom(
+                                            splashFactory: NoSplash.splashFactory,
                                             backgroundColor: colorPoint,
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)))),
                                   )
@@ -1244,6 +1291,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                         },
                                         child: Icon(Icons.clear, size: 20, color: Color.fromARGB(153, 60, 60, 67)),
                                         style: TextButton.styleFrom(
+                                            splashFactory: NoSplash.splashFactory,
                                             padding: EdgeInsets.zero,
                                             backgroundColor: Color.fromARGB(255, 242, 242, 247),
                                             shape:
@@ -1266,6 +1314,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                                 decoration: BoxDecoration(shape: BoxShape.circle, color: colorPoint))
                                             : Container(),
                                         style: TextButton.styleFrom(
+                                            splashFactory: NoSplash.splashFactory,
                                             padding: EdgeInsets.zero,
                                             backgroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(
@@ -1289,6 +1338,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                                 decoration: BoxDecoration(shape: BoxShape.circle, color: colorPoint))
                                             : Container(),
                                         style: TextButton.styleFrom(
+                                            splashFactory: NoSplash.splashFactory,
                                             padding: EdgeInsets.zero,
                                             backgroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(
@@ -1312,6 +1362,7 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                                 decoration: BoxDecoration(shape: BoxShape.circle, color: colorPoint))
                                             : Container(),
                                         style: TextButton.styleFrom(
+                                            splashFactory: NoSplash.splashFactory,
                                             padding: EdgeInsets.zero,
                                             backgroundColor: Colors.white,
                                             shape: RoundedRectangleBorder(

@@ -70,6 +70,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                                     width: 24,
                                     height: 24,
                                     child: IconButton(
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
                                         onPressed: () {
                                           navigatorKey.currentState?.pop();
                                         },
@@ -93,6 +95,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                                           width: 24,
                                           height: 24,
                                           child: IconButton(
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
                                               padding: EdgeInsets.all(0),
                                               onPressed: () {
                                                 // 삭제 팝업창
@@ -130,6 +134,8 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                                           width: 24,
                                           height: 24,
                                           child: IconButton(
+                                              splashColor: Colors.transparent,
+                                              highlightColor: Colors.transparent,
                                               padding: EdgeInsets.all(0),
                                               onPressed: () async {
                                                 await navigatorKey.currentState?.pushNamed('/food_detail_edit_page',

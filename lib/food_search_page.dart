@@ -106,6 +106,8 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                                         width: 24,
                                         height: 24,
                                         child: IconButton(
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
                                             onPressed: () {
                                               item_selected = []; // 선택 항목 리스트 초기화
                                               navigatorKey.currentState?.pop();
@@ -127,6 +129,8 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                                         height: 24,
                                         width: 24,
                                         child: IconButton(
+                                            splashColor: Colors.transparent,
+                                            highlightColor: Colors.transparent,
                                             icon: Icon(Icons.check),
                                             padding: EdgeInsets.all(0.0),
                                             onPressed: () {
@@ -242,6 +246,8 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                       width: 20,
                       height: 20,
                       child: IconButton(
+                          splashColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
                           onPressed: () {
                             setState(() {
                               item_selected.remove(name + "/" + category);
