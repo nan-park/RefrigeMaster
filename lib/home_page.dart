@@ -11,7 +11,7 @@ import 'backside/kakao_login.dart';
 // (중요 체크) 현재 홈화면 탭 누르면 초기화되도록 만들기(홈화면일때도 스크롤돼있으면 초기화). 홈화면 상태에서 뒤로가기 못하게 만들기(willpopscope)
 // 전역 변수
 int _currentIndex = 0;
-int buttonChecked = 3;
+int buttonChecked = 1;
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -428,9 +428,10 @@ class _RefTapState extends State<RefTap> {
                                               ),
                                             ],
                                           ),
-                                          onTap: () {
-                                            Navigator.of(context)
+                                          onTap: () async {
+                                            await Navigator.of(context)
                                                 .push(MaterialPageRoute(builder: (context) => RefDetailPage()));
+                                            setState(() {});
                                           })),
                                 ],
                               ),
@@ -980,18 +981,59 @@ class _RefDetailPageState extends State<RefDetailPage> {
                                 child: Stack(
                                   children: [
                                     Align(
-                                        // 식재료 소팅 버튼(bottom sheet)
-                                        // (체크) 커스텀 이미지랑 같이 넣기
-                                        alignment: Alignment.centerLeft,
-                                        child: TextButton(
-                                            onPressed: () async {
-                                              // (체크) 순서정렬 잘 되는지 확인
-                                              if (await foodSortBottomSheet()) {
-                                                setState(() {});
-                                              }
-                                            },
-                                            child: Text("전체"),
-                                            style: TextButton.styleFrom(padding: EdgeInsets.zero))),
+                                      // 식재료 소팅 버튼(bottom sheet)
+                                      // (체크) 커스텀 이미지랑 같이 넣기
+                                      alignment: Alignment.centerLeft,
+                                      child: Container(
+                                        width: 150,
+                                        child: ElevatedButton(
+                                          onPressed: () async {
+                                            // (체크) 순서정렬 잘 되는지 확인
+                                            if (await foodSortBottomSheet()) {
+                                              setState(() {});
+                                            }
+                                          },
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                buttonChecked == 1
+                                                    ? "유통기한 임박순"
+                                                    : buttonChecked == 2
+                                                        ? "자주 사는 식재료순"
+                                                        : "등록순",
+                                                style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontFamily: "Inter",
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                              SizedBox(width: 10),
+                                              Container(
+                                                width: 20,
+                                                height: 20,
+                                                child: Image(
+                                                  image: AssetImage("src/down.png"),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          style: ElevatedButton.styleFrom(
+                                            padding: EdgeInsets.zero,
+                                            primary: Color.fromARGB(0, 0, 0, 0),
+                                            elevation: 0.0,
+                                            side: BorderSide(
+                                              color: Color.fromARGB(40, 34, 34, 34),
+                                              width: 1,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     Align(
                                       // 편집 버튼(식재료 삭제)
                                       alignment: Alignment.centerRight,
