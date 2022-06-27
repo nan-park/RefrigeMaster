@@ -71,9 +71,11 @@ class FoodAddPage extends StatefulWidget {
 }
 
 // 전역 변수
-List<Map<String, dynamic>> setting = [];
+
 
 class _FoodAddPageState extends State<FoodAddPage> {
+  List<Map<String, dynamic>> setting = [];
+  bool executed = false;
   @override
   Widget build(BuildContext context) {
     // 변수들(빌드 이후)
@@ -82,9 +84,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
     DateTime? date_time;
     List temp = [];
     print(setting);
-    if (setting.length != item_list.length) {
+    if (!executed) {  // 처음 실행
       setting = [];
-      // 조건문 있어야 리스트 계속 추가 안 됨
       for (int i = 0; i < item_list.length; i++) {
         temp = item_list[i].split("/");
         // 직접추가면 ["식재료이름", ""]
@@ -100,6 +101,7 @@ class _FoodAddPageState extends State<FoodAddPage> {
           'half': false
         });
       }
+      executed = true;
     }
     //  [{name: 사과, category: 과일, location: 냉장, expire_date: null(TimeStamp), amount: 0, half: false}]
     return MaterialApp(
@@ -159,7 +161,8 @@ class _FoodAddPageState extends State<FoodAddPage> {
                                           setting = [];
                                           navigatorKey.currentState
                                               ?.pushNamedAndRemoveUntil('/home_page', (route) => false);
-                                              item_selected = [];
+                                          item_selected = [];
+                                          executed = false;
                                           //(체크) food_search_page의 item_selected도 초기화하는 방법이 없을까?
                                         }
                                       }),
