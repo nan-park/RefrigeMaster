@@ -30,6 +30,11 @@ Widget itemBox(String title, String contents) {
   );
 }
 
+Future<bool> removeIngredient(String ref_docid, String ing_docid) async {
+  await FirebaseFirestore.instance.collection("Refrigerators/" + ref_docid + "/Ingredients").doc(ing_docid).delete();
+  return true;
+}
+
 class FoodDetailPage extends StatefulWidget {
   FoodDetailPage({Key? key}) : super(key: key);
 
@@ -38,6 +43,7 @@ class FoodDetailPage extends StatefulWidget {
 }
 
 class _FoodDetailPageState extends State<FoodDetailPage> {
+  String name = "";
   @override
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as Map;
@@ -80,23 +86,53 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  // 삭제 버튼 //(체크) onPressed
+                                  // 삭제 버튼
                                   SizedBox(
                                       width: 24,
                                       height: 24,
                                       child: IconButton(
                                           padding: EdgeInsets.all(0),
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            // 삭제 팝업창
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) {
+                                                return AlertDialog(
+                                                  content: Text("\'" + name + "\'를 정말 삭제하시겠습니까?"), // name으로 바꾸기
+                                                  actions: [
+                                                    TextButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(context);
+                                                        },
+                                                        child: Text("취소")),
+                                                    TextButton(
+                                                        onPressed: () async {
+                                                          // 삭제
+                                                          if (await removeIngredient(
+                                                              args['ref_docid'], args['ing_docid'])) {
+                                                            navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                                                                '/home_page', (route) => false);
+                                                          }
+                                                        },
+                                                        child: Text("확인"))
+                                                  ],
+                                                );
+                                              },
+                                            );
+                                          },
                                           icon: Icon(Icons.delete_outline),
                                           color: Color.fromARGB(128, 34, 34, 34))),
                                   SizedBox(width: 12),
-                                  // 편집 버튼 //(체크) onPressed
+                                  // 편집 버튼 // (체크) onPressed
                                   SizedBox(
                                       width: 24,
                                       height: 24,
                                       child: IconButton(
                                           padding: EdgeInsets.all(0),
-                                          onPressed: () {},
+                                          onPressed: () async {
+                                            await navigatorKey.currentState?.pushNamed('/food_detail_edit_page');
+                                            setState(() {});
+                                          },
                                           icon: Icon(Icons.create),
                                           color: Color.fromARGB(128, 34, 34, 34)))
                                 ],
@@ -112,6 +148,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
             FutureBuilder(
                 future: getIngredientDoc(args['ref_docid'], args['ing_docid']),
                 builder: (context, AsyncSnapshot snapshot) {
+                  name = snapshot.data.values.elementAt(0)['name'];
                   DateTime expire_date = snapshot.data.values.elementAt(0)['expire_date'].toDate();
                   int dDay = expire_date.difference(DateTime.now()).inDays.toInt();
                   String dDayString = ""; // 디데이 String
