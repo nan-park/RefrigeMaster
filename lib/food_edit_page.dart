@@ -95,7 +95,7 @@ class _FoodEditPageState extends State<FoodEditPage> {
               ),
               // 리스트 Layout-------------------------------
               // 구분선
-              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
               // 식재료 목록
             ],
           ),

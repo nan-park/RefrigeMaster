@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:refrige_master/main.dart';
+import 'backside/app_design_comp.dart';
 
 import 'backside/login_view_model.dart';
 import 'backside/kakao_login.dart';
@@ -32,34 +33,41 @@ class _LoginPageState extends State<LoginPage> {
                     // 로그인 버튼
                     return Column(
                       children: [
-                        const Spacer(),
-                        const Text(
-                          "LOGO",
-                          style: TextStyle(
-                            fontFamily: "Inter",
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
+                        const Spacer(flex: 2),
+                        Image.asset(
+                          'src/logo.png',
+                          width: 166,
+                          height: 40,
                         ),
                         const Spacer(),
+                        Text("손쉽게 냉장고 정리와",
+                            style: TextStyle(fontSize: 14, fontFamily: "Inter", color: Color.fromARGB(125, 0, 0, 0))),
+                        Text("일주일 식단을 관리하세요",
+                            style: TextStyle(fontSize: 14, fontFamily: "Inter", color: Color.fromARGB(125, 0, 0, 0))),
+                        Spacer(),
                         const SizedBox(
-                          height: 500,
+                          height: 440,
                           child: Image(image: AssetImage('src/LoginPageImage.png')),
                         ),
-                        const Spacer(),
-                        GestureDetector(
-                          onTap: () async {
-                            bool isLogined = await viewModel.login();
-                            if (isLogined) {
-                              navigatorKey.currentState?.pushNamedAndRemoveUntil('/home_page', (route) => false);
-                            }
-                          },
-                          child: const SizedBox(
-                            height: 50,
-                            child: SizedBox(
-                              height: 50,
-                              child: Image(
-                                image: AssetImage('src/kakao_login_large_wide.png'),
+                        const Spacer(flex: 3),
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width - 32,
+                          height: 52,
+                          child: TextButton(
+                            onPressed: () async {
+                              bool isLogined = await viewModel.login();
+                              if (isLogined) {
+                                navigatorKey.currentState?.pushNamedAndRemoveUntil('/home_page', (route) => false);
+                              }
+                            },
+                            child: Text("카카오톡으로 시작하기",
+                                style: TextStyle(
+                                    fontSize: 17, fontFamily: "Inter", color: Color.fromARGB(255, 50, 32, 31))),
+                            style: TextButton.styleFrom(
+                              backgroundColor: Color.fromARGB(255, 248, 206, 70),
+                              splashFactory: NoSplash.splashFactory,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6.0),
                               ),
                             ),
                           ),
@@ -68,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     );
                   } else {
-                    return Center(child: Text("Loading..."));
+                    return Container();
                   }
                 }),
           ),

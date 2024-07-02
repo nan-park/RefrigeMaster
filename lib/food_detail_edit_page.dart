@@ -107,7 +107,7 @@ class _FoodDetailEditPageState extends State<FoodDetailEditPage> {
                     height: 55,
                   ),
                   //구분선
-                  Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+                  Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
                   // 편집 영역
                   Padding(padding: EdgeInsets.all(24.0), child: settingList(args['ref_docid'], args['ing_docid']))
                 ],
@@ -170,6 +170,13 @@ class _FoodDetailEditPageState extends State<FoodDetailEditPage> {
                   children: [
                     // 식재료 사진
                     Container(
+                        child: Center(
+                          child: Image.asset(
+                            'src/ingredient_apple.png',
+                            width: 46,
+                            height: 51,
+                          ),
+                        ),
                         width: 74,
                         height: 74,
                         decoration: BoxDecoration(

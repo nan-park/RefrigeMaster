@@ -47,3 +47,4 @@ app.*.map.json
 
 # added
 node_modules/
+lib/firebase_options.dart
