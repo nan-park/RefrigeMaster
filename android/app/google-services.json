@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "151835860249",
+    "project_id": "refrigemaster",
+    "storage_bucket": "refrigemaster.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:151835860249:android:eb6d89cc547e794aa97988",
+        "android_client_info": {
+          "package_name": "com.yorijori.refrige_master"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "151835860249-njogp0ri7trbb4dcgc0i1r44sl95q060.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWFLlmqU06RrTRmoIEGL2_BfZnbunH3nk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "151835860249-njogp0ri7trbb4dcgc0i1r44sl95q060.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "151835860249-35h3h2l83l4drss77evsn90sj58ukvv3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.yorijori.refrigeMaster"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

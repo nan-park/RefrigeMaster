@@ -175,24 +175,32 @@ class _MemberListPageState extends State<MemberListPage> {
                               return Column(
                                 children: [
                                   for (int i = 0; i < snapshot.data.length; i++)
-                                    (Column(
+                                    Column(
                                       children: [
+                                        // 프로필 사진
                                         SizedBox(
-                                          height: 73,
+                                          height: 72,
                                           child: Row(
                                             children: [
+                                              Container(
+                                                  width: 48,
+                                                  height: 48,
+                                                  decoration: BoxDecoration(
+                                                      color: colorBackground,
+                                                      borderRadius: BorderRadius.circular(100))),
+                                              SizedBox(width: 16),
+                                              // 유저 이름
                                               Text(
                                                 snapshot.data?.elementAt(i)['username'],
                                               )
                                             ],
                                           ),
                                         ),
+                                        // 구분선
                                         Container(
-                                            height: 1,
-                                            width: MediaQuery.of(context).size.width,
-                                            color: Color.fromARGB(77, 34, 34, 34)),
+                                            height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
                                       ],
-                                    ))
+                                    )
                                 ],
                               );
                             }

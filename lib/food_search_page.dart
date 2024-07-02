@@ -171,7 +171,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                           ),
                         )),
                     // 구분선
-                    Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+                    Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
                     // 선택 항목(item_selected 비어있으면 안 나옴)
                     item_selected.isNotEmpty ? selectedItemBox() : Container(),
                     Expanded(
@@ -237,6 +237,13 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
               Align(
                   alignment: Alignment.center,
                   child: Container(
+                      child: Center(
+                        child: Image.asset(
+                          'src/ingredient_apple.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: Colors.white))),
@@ -326,6 +333,13 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                 child: Row(children: [
                   // 식재료 사진
                   Container(
+                      child: Center(
+                        child: Image.asset(
+                          'src/ingredient_apple.png',
+                          width: 24,
+                          height: 24,
+                        ),
+                      ),
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
@@ -366,7 +380,7 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
                                   side: BorderSide(color: colorPoint), borderRadius: BorderRadius.circular(100.0))))),
                 ])),
             // 구분선
-            Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey)
+            Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey1)
           ],
         ));
   }

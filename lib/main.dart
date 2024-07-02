@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:refrige_master/food_edit_page.dart';
 import 'package:refrige_master/member_invite_page.dart';
 import 'package:refrige_master/member_list_page.dart';
+import 'package:refrige_master/recipe_detail_page.dart';
 
 import 'login_page.dart';
 import 'home_page.dart';
@@ -10,6 +11,12 @@ import 'food_search_page.dart';
 import 'food_detail_page.dart';
 import 'food_add_page.dart';
 import 'food_detail_edit_page.dart';
+import 'recipe_storage_page.dart';
+import 'purchase_page.dart';
+import 'calendar_add_page.dart';
+import 'menu_detail_page.dart';
+import 'menu_complete_page.dart';
+import 'profile_manage_page.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:kakao_flutter_sdk_common/kakao_flutter_sdk_common.dart' as kakao; // user 구분
@@ -47,6 +54,13 @@ void main() async {
         '/member_list_page': (context) => MemberListPage(),
         '/food_edit_page': (context) => FoodEditPage(),
         '/food_detail_edit_page': (context) => FoodDetailEditPage(),
+        '/recipe_storage_page': (context) => RecipeStoragePage(),
+        '/purchase_page': (context) => PurchasePage(),
+        '/recipe_detail_page': (context) => RecipeDetailPage(),
+        '/calendar_add_page': (context) => CalendarAddPage(),
+        '/menu_detail_page': (context) => MenuDetailPage(),
+        '/menu_complete_page': (context) => MenuCompletePage(),
+        '/profile_manage_page': (context) => ProfileManagePage(),
       },
     ),
   );

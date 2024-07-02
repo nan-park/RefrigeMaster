@@ -60,7 +60,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0), // (체크)(중요) 전체적인 상단바 padding 수정하기
                           child: Stack(
                             children: [
                               // 뒤로가기 버튼
@@ -154,7 +154,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     ],
                   ),
                   color: Color.fromARGB(245, 255, 255, 255),
-                  height: 55,
+                  height: 50, //(체크) 상단바 크기 나중에 전체적으로 맞추기
                 ),
                 //  식재료 내용
                 FutureBuilder(
@@ -206,6 +206,13 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                                   children: [
                                     // 식재료 사진
                                     Container(
+                                        child: Center(
+                                          child: Image.asset(
+                                            'src/ingredient_apple.png',
+                                            width: 46,
+                                            height: 51,
+                                          ),
+                                        ),
                                         width: 74,
                                         height: 74,
                                         decoration: BoxDecoration(
@@ -248,12 +255,18 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                                   itemBox("개수", amountString),
                                 ]),
                                 SizedBox(height: 24),
-                                // 장보러가기 버튼 (체크) onPressed
+                                // 장보러가기 버튼
                                 SizedBox(
                                   height: 50,
                                   width: MediaQuery.of(context).size.width - 46,
                                   child: TextButton(
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        // (체크) 식재료 이름과 카테고리 데이터 전달해야 함.
+                                        navigatorKey.currentState?.pushNamed('/purchase_page', arguments: {
+                                          'category': snapshot.data.values.elementAt(0)['category'],
+                                          'name': snapshot.data.values.elementAt(0)['name']
+                                        });
+                                      },
                                       child: Text("장 보러 가기", style: inter17White),
                                       style: ButtonStyle(
                                           backgroundColor: MaterialStateProperty.all(colorPoint),

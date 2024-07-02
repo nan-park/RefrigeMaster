@@ -34,6 +34,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   flutter_svg: ^1.0.0
+  table_calendar: ^3.0.6
+  fluttertoast: ^8.0.9
+  flutter_cupertino_localizations: ^1.0.1
 
 
 
@@ -75,6 +78,62 @@ flutter:
     - src/my_icon.svg
     - src/ref_icon.svg
     - src/calendar_icon.svg
+    - src/meal_meat_spaghetti.svg # 왜 안나오지..
+    - src/meal_meat_spaghetti.png
+    - src/ingredient_apple.png
+    - src/logo.png
+    # 가지스테이크 6
+    - src/rkwltmxpdlzm1.png
+    - src/rkwltmxpdlzm2.png
+    - src/rkwltmxpdlzm3.png
+    - src/rkwltmxpdlzm4.png
+    - src/rkwltmxpdlzm5.png
+    - src/rkwltmxpdlzm6.png
+    # 토마토스튜 8
+    - src/xhakxhtmxb1.png
+    - src/xhakxhtmxb2.png
+    - src/xhakxhtmxb3.png
+    - src/xhakxhtmxb4.png
+    - src/xhakxhtmxb5.png
+    - src/xhakxhtmxb6.png
+    - src/xhakxhtmxb7.png
+    - src/xhakxhtmxb8.png
+    # 대파 닭안심 조림 5
+    - src/eovkekfrdkstlawhfla1.png
+    - src/eovkekfrdkstlawhfla2.png
+    - src/eovkekfrdkstlawhfla3.png
+    - src/eovkekfrdkstlawhfla4.png
+    - src/eovkekfrdkstlawhfla5.png
+    # 토마토 냉국 4
+    - src/xhakxhsodrnr1.png
+    - src/xhakxhsodrnr2.png
+    - src/xhakxhsodrnr3.png
+    - src/xhakxhsodrnr4.png
+    # 가지볶음 7
+    - src/rkwlqhRdma1.png
+    - src/rkwlqhRdma2.png
+    - src/rkwlqhRdma3.png
+    - src/rkwlqhRdma4.png
+    - src/rkwlqhRdma5.png
+    - src/rkwlqhRdma6.png
+    - src/rkwlqhRdma7.png
+    # 가지 탕수 6 
+    - src/rkwlxkdtn1.png
+    - src/rkwlxkdtn2.png
+    - src/rkwlxkdtn3.png
+    - src/rkwlxkdtn4.png
+    - src/rkwlxkdtn5.png
+    - src/rkwlxkdtn6.png
+    # 토마토 달걀 볶음 6 
+    - src/xhakxhekfrifqhRdma1.png
+    - src/xhakxhekfrifqhRdma2.png
+    - src/xhakxhekfrifqhRdma3.png
+    - src/xhakxhekfrifqhRdma4.png
+    - src/xhakxhekfrifqhRdma5.png
+    - src/xhakxhekfrifqhRdma6.png
+
+
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

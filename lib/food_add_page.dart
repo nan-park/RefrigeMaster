@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+// import 'package:flutter_cupertino_localizations/flutter_cupertino_localizations.dart' as cupertino;
 
 import 'package:refrige_master/backside/app_design_comp.dart';
 import 'package:refrige_master/food_search_page.dart';
@@ -21,11 +23,12 @@ Future<bool> addIngredients(List set) async {
     //  element.id == 식재료이름
     map_list[element.id] = element.data();
   });
+  print("db 확인");
 
   // 식재료 추가
   final snapshot = await FirebaseFirestore.instance
       .collection("Refrigerators")
-      .where('present_member', arrayContains: FirebaseAuth.instance.currentUser?.uid)
+      .where('member', arrayContains: FirebaseAuth.instance.currentUser?.uid)
       .get();
   for (int i = 0; i < snapshot.docs.length; i++) {
     docid = snapshot.docs[i].id;
@@ -37,7 +40,6 @@ Future<bool> addIngredients(List set) async {
       'category': temp['category'],
       'expire_date': Timestamp.fromDate(temp['expire_date']),
       'location': temp['location'],
-      'memo': "",
       'name': temp['name'],
       'register_date': Timestamp.now()
     });
@@ -70,8 +72,6 @@ class FoodAddPage extends StatefulWidget {
   State<FoodAddPage> createState() => _FoodAddPageState();
 }
 
-// 전역 변수
-
 class _FoodAddPageState extends State<FoodAddPage> {
   List<Map<String, dynamic>> setting = [];
   bool executed = false;
@@ -100,19 +100,20 @@ class _FoodAddPageState extends State<FoodAddPage> {
           'amount': 0.0,
           'half': false
         });
+        initializeDateFormatting(Localizations.localeOf(context).languageCode); // DateFormat 초기화
       }
       executed = true;
     }
     //  [{name: 사과, category: 과일, location: 냉장, expire_date: null(TimeStamp), amount: 0, half: false}]
     return MaterialApp(
         debugShowCheckedModeBanner: false,
-        // 캘린더 한국어로 바꾸기
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [Locale('ko', 'KR')],
+        // // 캘린더 한국어로 바꾸기
+        // localizationsDelegates: const [
+        //   GlobalMaterialLocalizations.delegate,
+        //   GlobalWidgetsLocalizations.delegate,
+        //   // cupertino.GlobalCupertinoLocalizations.delegate,
+        // ],
+        // supportedLocales: const [Locale('ko', 'KR')],
         home: Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
@@ -175,10 +176,10 @@ class _FoodAddPageState extends State<FoodAddPage> {
                                           // setting 초기화하고 식재료 현재 냉장고(present_member)에 추가한 채로 home_page로 돌아가기
                                           if (await addIngredients(setting)) {
                                             setting = [];
-                                            navigatorKey.currentState
-                                                ?.pushNamedAndRemoveUntil('/home_page', (route) => false);
                                             item_selected = [];
                                             executed = false;
+                                            navigatorKey.currentState
+                                                ?.pushNamedAndRemoveUntil('/home_page', (route) => false);
                                             //(체크) food_search_page의 item_selected도 초기화하는 방법이 없을까?
                                           }
                                         } else {
@@ -208,7 +209,7 @@ class _FoodAddPageState extends State<FoodAddPage> {
                 height: 55,
               ),
               // 구분선
-              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
+              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
               // 식재료 세팅 박스
               Expanded(child: SingleChildScrollView(child: settingList(setting)))
             ],
@@ -224,7 +225,7 @@ class _FoodAddPageState extends State<FoodAddPage> {
             children: [
               item(i, set[i]),
               // 구분선
-              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey)
+              Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1)
             ],
           )
       ], // 여기는 이 화면에서 품목 삭제하지 않는 한 리스트 번호 매겨서 체크해도 될듯?
@@ -274,6 +275,13 @@ class _FoodAddPageState extends State<FoodAddPage> {
               children: [
                 // 식재료 사진
                 Container(
+                    child: Center(
+                      child: Image.asset(
+                        'src/ingredient_apple.png',
+                        width: 40,
+                        height: 40,
+                      ),
+                    ),
                     width: 74,
                     height: 74,
                     decoration: BoxDecoration(
@@ -337,7 +345,7 @@ class _FoodAddPageState extends State<FoodAddPage> {
                               final now = DateTime.now();
                               final afterMonth = now.add(Duration(days: 30 * 12 * 20));
                               final date = await showDatePicker(
-                                // (체크) 캘린더 한국어로 바꾸기  //(현재) 여기서 리스트가 배가 됨
+                                // (체크) 캘린더 한국어로 바꾸기
                                 context: navigatorKey.currentState?.context as BuildContext,
                                 initialDate: now,
                                 firstDate: DateTime(now.year, now.month, now.day),
@@ -379,7 +387,6 @@ class _FoodAddPageState extends State<FoodAddPage> {
                         child: IconButton(
                             splashColor: Colors.transparent,
                             highlightColor: Colors.transparent,
-                            //(체크) onPressed => 개수 1 or 0.5 감소(그렇게 계산된 값이 음수라면 취소)
                             onPressed: () {
                               setState(() {
                                 if (info['half']) {

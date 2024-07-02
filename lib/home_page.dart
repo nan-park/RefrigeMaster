@@ -1,18 +1,25 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart' as intl;
 
 import 'package:refrige_master/backside/app_design_comp.dart';
+import 'package:refrige_master/ref_detail_page.dart';
+import 'recipe_recommend_page.dart';
 import 'main.dart';
 import 'backside/login_view_model.dart';
 import 'backside/kakao_login.dart';
+import 'recipe_detail_page.dart';
 
 // (중요 체크) 현재 홈화면 탭 누르면 초기화되도록 만들기(홈화면일때도 스크롤돼있으면 초기화). 홈화면 상태에서 뒤로가기 못하게 만들기(willpopscope)
 // 전역 변수
 int _currentIndex = 0;
-int buttonChecked = 1;
 
 class HomePage extends StatefulWidget {
   HomePage({Key? key}) : super(key: key);
@@ -23,36 +30,8 @@ class HomePage extends StatefulWidget {
 
 // 함수들 ------------------------
 
-// 자신의 냉장고들 리스트 찾아오기
-Future<List> refGetDocumentList() async {
-  List<String> lists = [];
-  QuerySnapshot snapshot = await FirebaseFirestore.instance
-      .collection("Refrigerators")
-      .where('member', arrayContains: FirebaseAuth.instance.currentUser?.uid)
-      .get();
-
-  snapshot.docs.forEach((element) {
-    lists.add(element.id);
-  });
-
-  return lists;
-}
-
-// 냉장고들 가져오기(내가 갖고있는 냉장고 전체)
-Future<Map> refGetDocument() async {
-  List lists = await refGetDocumentList(); //
-  Map<String, Map<String, dynamic>?> map = {}; // {docid : [Map]}
-
-  for (int i = 0; i < lists.length; i++) {
-    final documentData = await FirebaseFirestore.instance.collection("Refrigerators").doc(lists[i]).get();
-    map[lists[i]] = documentData.data();
-  }
-  print(map);
-  return map;
-}
-
 // 현재 냉장고 하나만 가져오기
-Future<Map?> presentRefGetDocument() async {
+Future<Map?> refGetDocument() async {
   Map<String, Map<String, dynamic>?> map = {}; // {docid : [Map]}
 
   // final snapshot = await FirebaseFirestore.instance
@@ -61,7 +40,7 @@ Future<Map?> presentRefGetDocument() async {
   //     .get() as DocumentSnapshot;
   final snapshot = await FirebaseFirestore.instance
       .collection("Refrigerators")
-      .where('present_member', arrayContains: FirebaseAuth.instance.currentUser?.uid)
+      .where('member', arrayContains: FirebaseAuth.instance.currentUser!.uid)
       .get();
   // print(snapshot.data());
   for (int i = 0; i < snapshot.docs.length; i++) {
@@ -91,6 +70,7 @@ Future<List> limit_ingredientGetDocumentList(String docid, int refPage) async {
       .limit(6)
       .get();
   snapshot.docs.forEach((element) {
+    // (체크) 사실 여기서 바로 docs.data 가져와서 한 번에 할 수 있는데 굉장한 손해.. 나중에 수정하자.
     lists.add(element.id);
   });
 
@@ -110,77 +90,42 @@ Future<Map> limit_ingredientGetDocument(String docid, int refPage) async {
   return map;
 }
 
-// 냉장고에서 재료 가져오기(ref_detail_page 전용. 개수제한 없음)
-Future<List> ingredientGetDocumentList(String docid, int refPage) async {
-  List lists = [];
-  String location = "";
-  if (refPage == 1) {
-    location = "냉장";
-  } else if (refPage == 2) {
-    location = "냉동";
-  } else if (refPage == 3) {
-    location = "기타";
-  }
+// 랜덤으로 3개의 추천 식단을 갖고 와서 보여주기. 나중에는 제대로 알고리즘 짜서 유통기한 임박 식재료도 같이 보여줘야 함.
+Future<Map> limit_getRecommendRecipeDocument() async {
+  // List lists = await limit_ingredientGetDocumentList(); //
+  Map map = {}; // {docid : [Map]}
 
-  if (buttonChecked == 1) {
-    // 유통기한 임박순(expire_date)
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Refrigerators/" + docid + "/Ingredients")
-        .where('location', isEqualTo: location)
-        .orderBy('expire_date', descending: false)
-        .get();
-    snapshot.docs.forEach((element) {
-      lists.add(element.id);
-    });
-  } else if (buttonChecked == 2) {
-    // 자주 사는 식재료순(register_count) // (체크) 수정 필요
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Refrigerators/" + docid + "/Ingredients")
-        .where('location', isEqualTo: location)
-        .orderBy('register_count', descending: true)
-        .get();
-    snapshot.docs.forEach((element) {
-      lists.add(element.id);
-    });
-  } else {
-    // 등록순(register_date)
-    QuerySnapshot snapshot = await FirebaseFirestore.instance
-        .collection("Refrigerators/" + docid + "/Ingredients")
-        .where('location', isEqualTo: location)
-        .orderBy('register_date', descending: true)
-        .get();
-    snapshot.docs.forEach((element) {
-      lists.add(element.id);
-    });
-  }
-
-  return lists;
-}
-
-Future<Map> ingredientGetDocument(String docid, int refPage) async {
-  List lists = await limit_ingredientGetDocumentList(docid, refPage); //
-  Map<String, Map<String, dynamic>?> map = {}; // {docid : [Map]}
-
-  for (int i = 0; i < lists.length; i++) {
-    final documentData =
-        await FirebaseFirestore.instance.collection("Refrigerators/" + docid + "/Ingredients").doc(lists[i]).get();
-    map[lists[i]] = documentData.data();
-  }
-  print(map);
+  QuerySnapshot snapshot = await FirebaseFirestore.instance.collection("RecipeTemplates").limit(3).get();
+  snapshot.docs.forEach((element) {
+    map[element.id] = element.data();
+  });
   return map;
 }
 
-Future<bool> editPresentRef(String pre_docid, String docid) async {
-  // remove
-  await FirebaseFirestore.instance.collection("Refrigerators").doc(pre_docid).update({
-    "present_member": FieldValue.arrayRemove([FirebaseAuth.instance.currentUser?.uid])
+Future<Map> getTodayMenu(DateTime selectedDate) async {
+  Map map = {};
+  final snapshot = await FirebaseFirestore.instance
+      .collection("Users/" +
+          FirebaseAuth.instance.currentUser!.uid +
+          "/Calendar/" +
+          intl.DateFormat('yyyy.MM.dd').format(selectedDate) +
+          "/MealPlans")
+      .orderBy('sequence', descending: false) // 순서 0, 1, 2... 순서대로
+      .get(); // (체크) 여기에서 length 불러올 수 없다는 오류 뜨는데 일단 넘어가고 나중에 고치기.
+
+  snapshot.docs.forEach((element) {
+    map[element.id] = element.data();
   });
 
-  // add
-  await FirebaseFirestore.instance.collection(("Refrigerators")).doc(docid).update({
-    "present_member": FieldValue.arrayUnion([FirebaseAuth.instance.currentUser?.uid])
-  });
-  return true;
+  return map;
+}
+
+Future<Map> getUserInfo() async {
+  Map map = {};
+  final snapshot =
+      await FirebaseFirestore.instance.collection("Users").doc(FirebaseAuth.instance.currentUser!.uid).get();
+  map[FirebaseAuth.instance.currentUser!.uid] = snapshot.data();
+  return map;
 }
 
 // Page Tap -----------------------
@@ -188,7 +133,7 @@ Future<bool> editPresentRef(String pre_docid, String docid) async {
 class _HomePageState extends State<HomePage> {
   final _navigatorKeyList = List.generate(3, (index) => GlobalKey<NavigatorState>());
   // 바텀 내비게이션 변수
-  final _children = [RefTap(), MealTap(), MyTap()];
+  final _children = [RefTap(), DietTap(), MyTap()];
   void _onTap(int index) {
     setState(() {
       _currentIndex = index;
@@ -269,6 +214,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// 냉장고 관리 탭
 class RefTap extends StatefulWidget {
   @override
   State<RefTap> createState() => _RefTapState();
@@ -278,6 +224,7 @@ class _RefTapState extends State<RefTap> {
   //변수
   int refPageSelected = 1; // 홈화면 변수(냉장/냉동/기타)
   String pre_docid = ""; // present_document_id
+  int _index = 0;
   @override
   Widget build(BuildContext context) {
     // 빌드 이후 변수
@@ -292,7 +239,14 @@ class _RefTapState extends State<RefTap> {
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: Stack(
                   children: [
-                    Align(alignment: Alignment.centerLeft, child: Text("LOGO", style: interBold20Blue)),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Image.asset(
+                        'src/logo.png',
+                        width: 100,
+                        height: 20,
+                      ),
+                    ),
                     // 알림 버튼
                     Align(
                       alignment: Alignment.centerRight,
@@ -312,6 +266,8 @@ class _RefTapState extends State<RefTap> {
               color: Color.fromARGB(245, 255, 255, 255),
               height: 50,
             ),
+            // 구분선
+            Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
             // 오늘의 메뉴 박스
             Container(
               color: Color.fromARGB(255, 242, 242, 246),
@@ -322,7 +278,7 @@ class _RefTapState extends State<RefTap> {
                   SizedBox(height: 10),
                   Row(
                     children: [
-                      SizedBox(width: 10),
+                      SizedBox(width: 16),
                       Text("오늘의 메뉴", style: TextStyle(fontFamily: "Inter", fontSize: 24, fontWeight: FontWeight.bold)),
                       Expanded(child: Container()),
                       SizedBox(
@@ -330,39 +286,30 @@ class _RefTapState extends State<RefTap> {
                           child: IconButton(
                               splashColor: Colors.transparent,
                               highlightColor: Colors.transparent,
+                              padding: EdgeInsets.all(0),
                               onPressed: () {},
                               icon: Icon(
                                 Icons.arrow_forward_ios,
                                 size: 16,
-                                color: Color.fromARGB(130, 34, 34, 34),
+                                color: colorGrey3,
                               ))),
                       SizedBox(width: 20),
                     ],
                   ),
                   SizedBox(height: 16),
                   // (체크) 스와이프 카드(오늘의 메뉴) (or gesture detector)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: widthPadding,
-                        height: 136,
-                        decoration:
-                            BoxDecoration(color: Colors.white, borderRadius: BorderRadius.all(Radius.circular(20))),
-                      )
-                    ],
-                  )
+                  menuSwipeCard(),
                 ],
               ),
             ),
             FutureBuilder(
-                future: presentRefGetDocument(),
+                future: refGetDocument(),
                 builder: (BuildContext context, AsyncSnapshot snapshot) {
                   if (snapshot.hasError) {
                     return Center(child: Text("Error"));
                   }
                   if (!snapshot.hasData) {
-                    //(현재)(체크) 이걸 생성된 냉장고가 없는 상태로 무조건 판단할 수 있을까? 예외가 있나?
+                    //(체크) 이걸 생성된 냉장고가 없는 상태로 무조건 판단할 수 있을까? 예외가 있나?
                     return Column(children: [
                       SizedBox(height: 10),
                       Text("현재 생성된 냉장고가 없습니다. 냉장고를 추가해주세요!", style: inter14Black),
@@ -374,7 +321,7 @@ class _RefTapState extends State<RefTap> {
                             onPressed: () async {
                               await navigatorKey.currentState?.pushNamed('/ref_add_page');
                               setState(() {
-                                presentRefGetDocument();
+                                refGetDocument();
                               });
                             },
                             child: Text("냉장고 추가하기", style: inter17White),
@@ -401,31 +348,6 @@ class _RefTapState extends State<RefTap> {
                                   // 냉장고 이름 //(체크) 영어일때, 한글일 때 글자 세로간격이 다른듯?
                                   Text(snapshot.data?.values.elementAt(0)['ref_name'],
                                       style: TextStyle(fontFamily: "Inter", fontSize: 24, fontWeight: FontWeight.bold)),
-                                  SizedBox(width: 8),
-                                  // 냉장고 목록 버튼
-                                  SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: Transform.rotate(
-                                      angle: 90 * math.pi / 180,
-                                      child: IconButton(
-                                          splashColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          padding: EdgeInsets.all(0.0),
-                                          onPressed: () async {
-                                            if (await refAddBottomSheet(pre_docid)) {
-                                              // 창 닫았을 때
-                                              setState(() {});
-                                            }
-                                            // (체크)냉장고 개수에 따라 크기 바뀌어야 함
-                                          },
-                                          icon: Icon(
-                                            Icons.arrow_forward_ios,
-                                            size: 16,
-                                            color: Color.fromARGB(130, 34, 34, 34),
-                                          )),
-                                    ),
-                                  ),
                                   Expanded(child: Container()),
                                   // 냉장고 더보기 버튼
                                   SizedBox(
@@ -546,6 +468,7 @@ class _RefTapState extends State<RefTap> {
       ),
       // 플로팅 버튼(식재료 추가)
       floatingActionButton: FloatingActionButton(
+          heroTag: 'refTap',
           onPressed: () {
             navigatorKey.currentState?.pushNamed('/food_search_page');
           },
@@ -554,132 +477,115 @@ class _RefTapState extends State<RefTap> {
     );
   }
 
-  // 냉장고 추가 바텀 시트
-  Future<bool> refAddBottomSheet(String pre_docid) async {
-    await showModalBottomSheet(
-        useRootNavigator: true,
-        backgroundColor: Colors.transparent,
-        context: context,
-        isScrollControlled: true,
-        builder: (BuildContext context) {
-          return FutureBuilder(
-              future: refGetDocument(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: Text("로딩중..."));
-                } else {
-                  print("pre_docid: " + pre_docid);
-                  int refCount = snapshot.data.length; // 냉장고 개수
-                  double _height = 290 + 130 * (refCount - 1);
-                  if (_height > MediaQuery.of(context).size.height * 0.8) {
-                    _height = MediaQuery.of(context).size.height * 0.8;
-                  }
-                  return Container(
-                      // (체크)height이 냉장고 개수에 따라 달라져야 함
-                      height: _height,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            BorderRadius.only(topLeft: Radius.circular(13.0), topRight: Radius.circular(13.0)),
-                      ),
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12), // (체크)
-                          child: Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start, // 원래 "내 냉장고" 텍스트 외에는 중앙 배치인데 그냥 start로 맞춤(width로 아무튼 중앙임)
-                                children: [
-                                  Text("내 냉장고", style: interBold17),
-                                  SizedBox(height: 12),
-                                  Container(
-                                      height: 1,
-                                      width: MediaQuery.of(context).size.width - 32,
-                                      color: Color.fromARGB(77, 34, 34, 34)),
-                                  SizedBox(height: 24),
-                                  // 냉장고 목록
-                                  for (int i = 0; i < refCount; i++)
-                                    Column(
-                                      children: [
-                                        // 개별 냉장고 박스
-                                        GestureDetector(
-                                          onTap: () async {
-                                            if (snapshot.data.keys.elementAt(i) != pre_docid) {
-                                              // 다른 냉장고 선택했을 때
-                                              if (await editPresentRef(pre_docid, snapshot.data.keys.elementAt(i))) {
-                                                navigatorKey.currentState?.pop();
-                                              }
-                                            } else {
-                                              navigatorKey.currentState?.pop();
-                                            }
-                                          },
-                                          child: Container(
-                                              width: MediaQuery.of(context).size.width - 32,
-                                              height: 114,
-                                              decoration: BoxDecoration(
-                                                  color: Color.fromARGB(255, 242, 242, 246),
-                                                  borderRadius: BorderRadius.circular(20.0)),
-                                              child: Padding(
-                                                  padding: EdgeInsets.all(16.0),
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(snapshot.data.values.elementAt(i)['ref_name'],
-                                                          style: inter17),
-                                                      SizedBox(height: 12),
-                                                      // 식재료 이미지
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            height: 48,
-                                                            width: 48,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius.circular(100),
-                                                                color: Colors.white),
-                                                          ),
-                                                          SizedBox(width: 8),
-                                                          Container(
-                                                              height: 48,
-                                                              width: 48,
-                                                              decoration: BoxDecoration(
-                                                                  borderRadius: BorderRadius.circular(100),
-                                                                  color: Colors.white))
-                                                        ],
-                                                      )
-                                                    ],
-                                                  ))),
-                                        ),
-                                        SizedBox(height: 16)
-                                      ],
-                                    ),
-                                  SizedBox(height: 8),
-                                  // 냉장고 추가 버튼
-                                  SizedBox(
-                                    height: 52,
-                                    width: MediaQuery.of(context).size.width - 32,
-                                    child: TextButton(
-                                        onPressed: () async {
-                                          //(체크) 냉장고 개수 제한이 있어야 할지 고민
-                                          await navigatorKey.currentState?.pushNamed('/ref_add_page');
-                                          navigatorKey.currentState?.pop();
-                                        },
-                                        child: Text("냉장고 추가하기", style: inter17White),
-                                        style: TextButton.styleFrom(
-                                            splashFactory: NoSplash.splashFactory,
-                                            backgroundColor: colorPoint,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)))),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ));
-                }
-              });
+  Widget menuSwipeCard() {
+    int count;
+    return FutureBuilder(
+        future: getTodayMenu(DateTime.now()),
+        builder: (context, AsyncSnapshot snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text("Error"));
+          } else if (snapshot.hasData) {
+            count = snapshot.data.length ?? 0;
+            if (count == 0) {
+              return Center(child: Text("데이터 없음"));
+            } else {
+              return Column(
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    height: 136,
+                    child: PageView.builder(
+                        controller: PageController(initialPage: 0),
+                        itemCount: count,
+                        onPageChanged: (int index) => setState(() => _index = index),
+                        itemBuilder: (BuildContext context, int index) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Container(
+                                decoration: BoxDecoration(
+                                    color: colorBlue, borderRadius: BorderRadius.all(Radius.circular(20))),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Row(
+                                    // 내용
+                                    children: [
+                                      // 요리 프로필 사진
+                                      Container(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(10.0),
+                                            child: Center(
+                                              child: Image.asset(
+                                                'src/meal_meat_spaghetti.png',
+                                                width: 80,
+                                                height: 80,
+                                              ),
+                                            ),
+                                          ),
+                                          width: 100,
+                                          height: 100,
+                                          decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.all(Radius.circular(20)))),
+                                      SizedBox(width: 16),
+                                      // 요리 정보 영역
+                                      Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Icon(Icons.restaurant_menu, color: Colors.white, size: 18),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                    "식사 " +
+                                                        (snapshot.data.values.elementAt(_index)['sequence'] + 1)
+                                                            .toString(),
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontFamily: "Inter",
+                                                        height: 1,
+                                                        color: Colors.white,
+                                                        fontWeight: FontWeight.bold)), // (체크) SemiBold
+                                              ],
+                                            ),
+                                            Text(snapshot.data.values.elementAt(_index)['name'],
+                                                style: TextStyle(
+                                                    fontSize: 17,
+                                                    fontFamily: "Inter",
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white)),
+                                          ])
+                                    ],
+                                  ),
+                                )),
+                          );
+                        }),
+                  ),
+                  SizedBox(height: 10),
+                  // 스와이프 순서
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      for (int i = 0; i < count; i++)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 3.0),
+                          child: Container(
+                              width: 6,
+                              height: 6,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(100),
+                                color: i == _index ? colorBlue : Color.fromARGB(76, 0, 122, 255), // colorBlue 투명도 30%
+                              )),
+                        )
+                    ],
+                  )
+                ],
+              );
+            }
+          } else {
+            return Container();
+          }
         });
-    return true;
   }
 
   Widget foodList(String docid, int refPageSelected) {
@@ -757,12 +663,18 @@ class _RefTapState extends State<RefTap> {
                 child: Row(
                   children: [
                     SizedBox(width: 10),
-                    // 식재료 사진
+                    // 식재료 사진  // (체크) 나중에 카테고리 따라 사진 넣기.
                     Container(
+                        child: Center(
+                          child: Image.asset(
+                            'src/ingredient_apple.png',
+                            width: 40,
+                            height: 40,
+                          ),
+                        ),
                         width: 64,
                         height: 64,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100), color: Color.fromARGB(255, 242, 242, 246))),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: colorBackground)),
                     SizedBox(width: 10),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -802,718 +714,722 @@ class _RefTapState extends State<RefTap> {
                   ],
                 )),
             // 구분선
-            Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey)
-          ],
-        ));
-  }
-}
-
-// RefTap 안의 페이지
-class RefDetailPage extends StatefulWidget {
-  RefDetailPage({Key? key}) : super(key: key);
-
-  @override
-  State<RefDetailPage> createState() => _RefDetailPageState();
-}
-
-class _RefDetailPageState extends State<RefDetailPage> {
-  // 변수들
-  int refPageSelected = 1;
-  String pre_docid = "";
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder(
-          future: presentRefGetDocument(),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.hasError) {
-              return Center(child: Text("Error"));
-            }
-            if (!snapshot.hasData) {
-              //(체크) 냉장고 없을 때 추가 유도 해야함.. 근데 detail page라 굳이 안넣어도 되려나
-              return Center(child: Text("No data"));
-            } else {
-              pre_docid = snapshot.data.keys.elementAt(0);
-              return Column(
-                children: [
-                  //appBar 상단바
-                  Container(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Stack(
-                            children: [
-                              // 뒤로가기 버튼
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: IconButton(
-                                    splashColor: Colors.transparent,
-                                    highlightColor: Colors.transparent,
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                    padding: EdgeInsets.all(0.0),
-                                    splashRadius: 10,
-                                    icon: Icon(Icons.arrow_back, size: 24),
-                                  ),
-                                ),
-                              ),
-                              // 제목
-                              Align(
-                                alignment: Alignment.center,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                        height: 24,
-                                        child: Text(snapshot.data.values.elementAt(0)['ref_name'], style: interBold17)),
-                                    SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: IconButton(
-                                          splashColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          padding: EdgeInsets.all(0.0),
-                                          onPressed: () async {
-                                            if (await refAddBottomSheet(pre_docid)) {
-                                              // 창 닫았을 때
-                                              setState(() {});
-                                            }
-                                            // (체크)냉장고 개수에 따라 크기 바뀌어야 함
-                                          },
-                                          icon: Icon(
-                                            Icons.keyboard_arrow_down,
-                                            size: 24,
-                                            color: Color.fromARGB(130, 34, 34, 34),
-                                          )),
-                                    ),
-                                  ],
-                                ),
-                              ), // (체크) fontweight Semibold로 바꾸기
-                              Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    children: [
-                                      // 검색 버튼
-                                      SizedBox(
-                                          width: 24,
-                                          height: 24,
-                                          child: IconButton(
-                                              splashColor: Colors.transparent,
-                                              highlightColor: Colors.transparent,
-                                              padding: EdgeInsets.all(0),
-                                              onPressed: () {},
-                                              icon: Icon(Icons.search),
-                                              color: Color.fromARGB(128, 34, 34, 34))),
-                                      SizedBox(width: 12),
-                                      // 설정 버튼
-
-                                      SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: IconButton(
-                                          splashColor: Colors.transparent,
-                                          highlightColor: Colors.transparent,
-                                          padding: EdgeInsets.all(0),
-                                          onPressed: () {
-                                            navigatorKey.currentState?.pushNamed(
-                                              '/member_list_page',
-                                              arguments: {
-                                                "refId": pre_docid,
-                                                "refName": snapshot.data.values.elementAt(0)['ref_name'],
-                                              },
-                                            );
-                                          },
-                                          icon: Icon(Icons.settings),
-                                          color: Color.fromARGB(128, 34, 34, 34),
-                                        ),
-                                      ),
-                                    ],
-                                  ))
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    color: Color.fromARGB(245, 255, 255, 255),
-                    height: 44,
-                  ),
-                  // 냉장/냉동/기타 탭(refPageSelected)
-                  Container(
-                      // (체크) 구분선과 클릭 범위 간에 공백 있는데 왜일까
-                      child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          child: TextButton(
-                            child: Text("냉장", style: inter14Blue),
-                            onPressed: () {
-                              setState(() {
-                                refPageSelected = 1;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(splashFactory: NoSplash.splashFactory),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          child: TextButton(
-                            child: Text("냉동", style: inter14Blue),
-                            onPressed: () {
-                              setState(() {
-                                refPageSelected = 2;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(splashFactory: NoSplash.splashFactory),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Container(
-                          child: TextButton(
-                            child: Text("기타", style: inter14Blue),
-                            onPressed: () {
-                              setState(() {
-                                refPageSelected = 3;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(splashFactory: NoSplash.splashFactory),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )),
-                  // 구분선(refPageSelected)
-                  Row(
-                    children: [
-                      // 냉장
-                      Container(
-                          height: 0.5,
-                          width: MediaQuery.of(context).size.width / 3,
-                          color: refPageSelected == 1 ? colorPoint : colorGrey),
-                      // 냉동
-                      Container(
-                          height: 0.5,
-                          width: MediaQuery.of(context).size.width / 3,
-                          color: refPageSelected == 2 ? colorPoint : colorGrey),
-                      // 기타
-                      Container(
-                          height: 0.5,
-                          width: MediaQuery.of(context).size.width / 3,
-                          color: refPageSelected == 3 ? colorPoint : colorGrey),
-                    ],
-                  ),
-                  // 스크롤 가능 영역
-                  Expanded(
-                    child: SingleChildScrollView(
-                        child: Column(
-                      children: [
-                        Container(
-                            height: 54,
-                            child: Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                                child: Row(
-                                  children: [
-                                    Align(
-                                      // 식재료 소팅 버튼(bottom sheet)
-                                      // (체크) 커스텀 이미지랑 같이 넣기
-                                      alignment: Alignment.centerLeft,
-                                      child: Container(
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            // (체크) 순서정렬 잘 되는지 확인
-                                            if (await foodSortBottomSheet()) {
-                                              setState(() {});
-                                            }
-                                          },
-                                          child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            children: [
-                                              Text(
-                                                buttonChecked == 1
-                                                    ? "유통기한 임박순"
-                                                    : buttonChecked == 2
-                                                        ? "자주 사는 식재료순"
-                                                        : "등록순",
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontFamily: "Inter",
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                              SizedBox(width: 10),
-                                              Container(
-                                                width: 20,
-                                                height: 20,
-                                                child: Image(
-                                                  image: AssetImage("src/down.png"),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          style: ElevatedButton.styleFrom(
-                                            padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-                                            primary: Color.fromARGB(0, 0, 0, 0),
-                                            elevation: 0.0,
-                                            side: BorderSide(
-                                              color: Color.fromARGB(40, 34, 34, 34),
-                                              width: 1,
-                                            ),
-                                            splashFactory: NoSplash.splashFactory,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Align(
-                                      // 편집 버튼(식재료 삭제)
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton(
-                                        child: Text("편집", style: inter14Black),
-                                        onPressed: () {
-                                          navigatorKey.currentState?.pushNamed("/food_edit_page");
-                                        },
-                                        style: TextButton.styleFrom(
-                                          padding: EdgeInsets.zero,
-                                          splashFactory: NoSplash.splashFactory,
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ))),
-                        // 구분선
-                        Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey),
-                        // 식재료 목록
-                        foodList(snapshot.data.keys.elementAt(0), refPageSelected),
-                      ],
-                    )),
-                  ),
-                ],
-              );
-            }
-          }),
-      // 플로팅 버튼(식재료 추가)
-      floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            navigatorKey.currentState?.pushNamed('/food_search_page');
-          },
-          backgroundColor: colorPoint,
-          child: Icon(Icons.add)),
-    );
-  }
-
-  // 냉장고 추가 바텀 시트
-  Future<bool> refAddBottomSheet(String pre_docid) async {
-    await showModalBottomSheet(
-        useRootNavigator: true,
-        backgroundColor: Colors.transparent,
-        context: context,
-        builder: (BuildContext context) {
-          return FutureBuilder(
-              future: refGetDocument(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(child: Text("로딩중..."));
-                } else {
-                  print("pre_docid: " + pre_docid);
-                  int refCount = snapshot.data.length; // (체크)냉장고 개수
-                  return Container(
-                      // (체크)height이 냉장고 개수에 따라 달라져야 함
-                      // height: ,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius:
-                            BorderRadius.only(topLeft: Radius.circular(13.0), topRight: Radius.circular(13.0)),
-                      ),
-                      child: SingleChildScrollView(
-                        // (체크) 이거 나중에 container height 맞춘 후에는 지워야 함
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 27.0, horizontal: 16.0), // 공백 상하 27 / 좌우 16
-                          child: Row(
-                            children: [
-                              Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start, // 원래 "내 냉장고" 텍스트 외에는 중앙 배치인데 그냥 start로 맞춤(width로 아무튼 중앙임)
-                                children: [
-                                  Text("내 냉장고", style: interBold17),
-                                  SizedBox(height: 12),
-                                  Container(
-                                      height: 1,
-                                      width: MediaQuery.of(context).size.width - 32,
-                                      color: Color.fromARGB(77, 34, 34, 34)),
-                                  SizedBox(height: 24),
-                                  // 냉장고 목록
-                                  for (int i = 0; i < refCount; i++)
-                                    Column(
-                                      children: [
-                                        // 개별 냉장고 박스
-                                        GestureDetector(
-                                          onTap: () async {
-                                            if (snapshot.data.keys.elementAt(i) != pre_docid) {
-                                              // 다른 냉장고 선택했을 때
-                                              if (await editPresentRef(pre_docid, snapshot.data.keys.elementAt(i))) {
-                                                navigatorKey.currentState?.pop();
-                                              }
-                                            } else {
-                                              navigatorKey.currentState?.pop();
-                                            }
-                                          },
-                                          child: Container(
-                                              width: MediaQuery.of(context).size.width - 32,
-                                              height: 114,
-                                              decoration: BoxDecoration(
-                                                  color: Color.fromARGB(255, 242, 242, 246),
-                                                  borderRadius: BorderRadius.circular(20.0)),
-                                              child: Padding(
-                                                  padding: EdgeInsets.all(16.0),
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(snapshot.data.values.elementAt(i)['ref_name'],
-                                                          style: inter17),
-                                                      SizedBox(height: 12),
-                                                      // 식재료 이미지
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            height: 48,
-                                                            width: 48,
-                                                            decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius.circular(100),
-                                                                color: Colors.white),
-                                                          ),
-                                                          SizedBox(width: 8),
-                                                          Container(
-                                                              height: 48,
-                                                              width: 48,
-                                                              decoration: BoxDecoration(
-                                                                  borderRadius: BorderRadius.circular(100),
-                                                                  color: Colors.white))
-                                                        ],
-                                                      )
-                                                    ],
-                                                  ))),
-                                        ),
-                                        SizedBox(height: 16)
-                                      ],
-                                    ),
-                                  SizedBox(height: 8),
-                                  // 냉장고 추가 버튼
-                                  SizedBox(
-                                    height: 52,
-                                    width: MediaQuery.of(context).size.width - 32,
-                                    child: TextButton(
-                                        onPressed: () async {
-                                          //(체크) 냉장고 개수 제한이 있어야 할지 고민
-                                          await navigatorKey.currentState?.pushNamed('/ref_add_page');
-                                          navigatorKey.currentState?.pop();
-                                        },
-                                        child: Text("냉장고 추가하기", style: inter17White),
-                                        style: TextButton.styleFrom(
-                                            splashFactory: NoSplash.splashFactory,
-                                            backgroundColor: colorPoint,
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)))),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ));
-                }
-              });
-        });
-    return true;
-  }
-
-  // 식재료 소팅 바텀시트
-  Future<bool> foodSortBottomSheet() async {
-    await showModalBottomSheet(
-        useRootNavigator: true,
-        backgroundColor: Colors.transparent,
-        context: context,
-        builder: (BuildContext context) {
-          return StatefulBuilder(builder: (BuildContext context, StateSetter setState) {
-            return SafeArea(
-                //시트 전체
-                child: Container(
-                    height: 245,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(13.0),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0), // 공백 상하 27 / 좌우 16
-                      child: Stack(children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text("선택한 상태 보기", style: interBold17),
-                              SizedBox(height: 16),
-                              Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey),
-                              SizedBox(height: 16),
-                              Text("유통기한 임박순", style: inter17),
-                              SizedBox(height: 16),
-                              Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey),
-                              SizedBox(height: 16),
-                              Text("자주 사는 식재료순", style: inter17),
-                              SizedBox(height: 16),
-                              Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey),
-                              SizedBox(height: 16),
-                              Text("등록순", style: inter17)
-                            ],
-                          ),
-                        ),
-                        Align(
-                            alignment: Alignment.centerRight,
-                            child: Column(
-                              children: [
-                                // 나가기 버튼(닫기)
-                                SizedBox(
-                                    height: 30,
-                                    width: 30,
-                                    child: TextButton(
-                                        onPressed: () {
-                                          navigatorKey.currentState?.pop();
-                                        },
-                                        child: Icon(Icons.clear, size: 20, color: Color.fromARGB(153, 60, 60, 67)),
-                                        style: TextButton.styleFrom(
-                                            splashFactory: NoSplash.splashFactory,
-                                            padding: EdgeInsets.zero,
-                                            backgroundColor: Color.fromARGB(255, 242, 242, 247),
-                                            shape:
-                                                RoundedRectangleBorder(borderRadius: BorderRadius.circular(100.0))))),
-                                SizedBox(height: 33),
-                                // 유통기한 임박순 버튼 //(체크) 버튼 누르면 자동으로 바텀시트 닫히고 업데이트 되도록 하는 게 좋을까?
-                                SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            buttonChecked = 1;
-                                          });
-                                        },
-                                        child: buttonChecked == 1
-                                            ? Container(
-                                                width: 12,
-                                                height: 12,
-                                                decoration: BoxDecoration(shape: BoxShape.circle, color: colorPoint))
-                                            : Container(),
-                                        style: TextButton.styleFrom(
-                                            splashFactory: NoSplash.splashFactory,
-                                            padding: EdgeInsets.zero,
-                                            backgroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                                side: BorderSide(color: colorPoint),
-                                                borderRadius: BorderRadius.circular(100.0))))),
-                                SizedBox(height: 33),
-                                // 자주 사는 식재료순 버튼
-                                SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            buttonChecked = 2;
-                                          });
-                                        },
-                                        child: buttonChecked == 2
-                                            ? Container(
-                                                width: 12,
-                                                height: 12,
-                                                decoration: BoxDecoration(shape: BoxShape.circle, color: colorPoint))
-                                            : Container(),
-                                        style: TextButton.styleFrom(
-                                            splashFactory: NoSplash.splashFactory,
-                                            padding: EdgeInsets.zero,
-                                            backgroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                                side: BorderSide(color: colorPoint),
-                                                borderRadius: BorderRadius.circular(100.0))))),
-                                SizedBox(height: 33),
-                                // 등록순 버튼
-                                SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: TextButton(
-                                        onPressed: () {
-                                          setState(() {
-                                            buttonChecked = 3;
-                                          });
-                                        },
-                                        child: buttonChecked == 3
-                                            ? Container(
-                                                width: 12,
-                                                height: 12,
-                                                decoration: BoxDecoration(shape: BoxShape.circle, color: colorPoint))
-                                            : Container(),
-                                        style: TextButton.styleFrom(
-                                            splashFactory: NoSplash.splashFactory,
-                                            padding: EdgeInsets.zero,
-                                            backgroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                                side: BorderSide(color: colorPoint),
-                                                borderRadius: BorderRadius.circular(100.0))))),
-                              ],
-                            ))
-                      ]),
-                    )));
-          });
-        });
-    // 바텀 시트 닫혔을 때
-    print("Bottom sheet closed");
-    return true;
-  }
-
-  Widget foodList(String docid, int refPageSelected) {
-    return FutureBuilder(
-        future: ingredientGetDocument(docid, refPageSelected),
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (!snapshot.hasData) {
-            return Container();
-          } else {
-            return Column(
-              // name, amount, expire_date
-              children: [
-                for (int i = 0; i < snapshot.data.length; i++)
-                  food(
-                    docid,
-                    snapshot.data.keys.elementAt(i),
-                    snapshot.data.values.elementAt(i)['name'],
-                    snapshot.data.values.elementAt(i)['amount'].toDouble(),
-                    snapshot.data.values.elementAt(i)['expire_date'].toDate(),
-                  )
-              ],
-            ); // (체크) 개수 적으면 나머지 화면 빈공간으로 채워줘야 함
-          }
-        });
-  }
-
-  Widget food(String ref_docid, String ing_docid, String name, double amount, DateTime expire_date) {
-    int dDay = expire_date.difference(DateTime.now()).inDays.toInt();
-    String dDayString = ""; // 디데이 string
-    String amountString = ""; // 개수 String
-    if (dDay > 0) {
-      dDayString = "D - " + dDay.toString();
-    } else if (dDay == 0) {
-      dDayString = "D - Day";
-    } else if (dDay < 0) {
-      int dDay_minus = dDay * (-1);
-      dDayString = "D + " + dDay_minus.toString();
-    }
-    if (amount < 0) {
-      // 많음/보통/적음/매우적음
-      switch ((amount * (-1)).toInt()) {
-        case 1:
-          amountString = "매우 적음";
-          break;
-        case 2:
-          amountString = "적음";
-          break;
-        case 3:
-          amountString = "보통";
-          break;
-        case 4:
-          amountString = "많음";
-          break;
-      }
-    } else if (amount % 1 == 0) {
-      // 개수 string(정수면 .0 빼기)
-      int num = amount.toInt();
-      amountString = num.toString() + "개";
-    } else {
-      amountString = amount.toString() + "개";
-    }
-    return GestureDetector(
-        onTap: () async {
-          await navigatorKey.currentState
-              ?.pushNamed('/food_detail_page', arguments: {"ref_docid": ref_docid, "ing_docid": ing_docid});
-          setState(() {});
-        },
-        child: Column(
-          children: [
-            // 식재료 박스
-            Container(
-                height: 96,
-                width: MediaQuery.of(context).size.width,
-                child: Row(
-                  children: [
-                    SizedBox(width: 10),
-                    Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100), color: Color.fromARGB(255, 242, 242, 246))),
-                    SizedBox(width: 10),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 디데이
-                        Text(dDayString,
-                            style: TextStyle(
-                                fontSize: 16,
-                                fontFamily: "Inter",
-                                fontWeight: FontWeight.bold,
-                                color: dDay < 4 ? colorRed : colorBlue)), //(체크) semi bold
-                        SizedBox(height: 5),
-                        Row(
-                          children: [
-                            // 식재료 이름
-                            Text(name,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: "Inter",
-                                )),
-                            Container(
-                              height: 3,
-                              width: 3,
-                              margin: EdgeInsets.all(10),
-                              decoration: BoxDecoration(borderRadius: BorderRadius.circular(100), color: Colors.black),
-                            ),
-                            // 개수
-                            Text(amountString,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontFamily: "Inter",
-                                )),
-                          ],
-                        ),
-                      ],
-                    )
-                  ],
-                )),
-            // 구분선
-            Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey)
+            Container(height: 0.5, width: MediaQuery.of(context).size.width * 0.9, color: colorGrey1)
           ],
         ));
   }
 }
 
 // 식단 탭
-class MealTap extends StatefulWidget {
+class DietTap extends StatefulWidget {
   @override
-  State<MealTap> createState() => _MealTapState();
+  State<DietTap> createState() => _DietTapState();
 }
 
-class _MealTapState extends State<MealTap> {
+class _DietTapState extends State<DietTap> {
+  bool executed = false;
+  late DateTime _selectedCalendarDate;
+  late DateTime _focusedCalendarDate;
+  CalendarFormat _calendarFormat = CalendarFormat.week;
   @override
   Widget build(BuildContext context) {
-    return SafeArea(child: Container());
+    // 빌드 이후 변수
+    double widthPadding = MediaQuery.of(context).size.width - 32.0; //가로 패딩(양옆 16)
+    double dateWidth = (MediaQuery.of(context).size.width - 32) / 7;
+    if (!executed) {
+      // 한 번만 실행
+      initializeDateFormatting(Localizations.localeOf(context).languageCode); // DeateFormat 초기화
+      _focusedCalendarDate = DateTime.now();
+      _selectedCalendarDate = _focusedCalendarDate;
+      executed = true;
+    }
+
+    // 몇째 주인지 알아내기(weekNumOfMonth) <= _selectedCalendarDate
+    DateTime firstDayOfMonth = DateTime(_selectedCalendarDate.year, _selectedCalendarDate.month, 1);
+    int firstMonday = 1 + (7 - (firstDayOfMonth.weekday - DateTime.monday)) % 7;
+    print(firstMonday);
+    int difference = _selectedCalendarDate.day - firstMonday;
+    int weekNumOfMonth;
+    if (difference < 0) {
+      weekNumOfMonth = 1;
+    } else {
+      weekNumOfMonth = difference ~/ 7 + 2;
+    }
+    if (firstMonday == 1) {
+      weekNumOfMonth -= 1;
+    }
+    return Scaffold(
+      backgroundColor: Color.fromARGB(255, 239, 241, 245), // 배경색
+      // floatingActionButton: FloatingActionButton(
+      //     heroTag: 'dietTap',
+      //     onPressed: () {},
+      //     backgroundColor: colorPoint,
+      //     child: Icon(Icons.add)), // (체크) 누르면 focus 되고 추천 레시피 보기/레시피 직접 작성 버튼 나옴.
+      body: SingleChildScrollView(
+        child: Column(
+          // 전체 영역
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //appBar 상단바
+            Container(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                child: Row(
+                  children: [
+                    // 로고
+                    Image.asset(
+                      'src/logo.png',
+                      width: 100,
+                      height: 20,
+                    ),
+                    Expanded(child: Container()),
+                    // 보관함 버튼
+                    SizedBox(
+                      width: 56,
+                      height: 28,
+                      child: TextButton(
+                        onPressed: () {
+                          navigatorKey.currentState?.pushNamed('/recipe_storage_page');
+                        },
+                        child: Text("보관함", style: inter13Blue),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.fromLTRB(10, 6, 10, 6),
+                          side: BorderSide(
+                              color: colorPoint, width: 0.5), // (체크) figma 줄 두께는 0.5인데 에뮬레이터로 보면 너무 얇아 보임. 실제 기기에서 확인하기
+                          splashFactory: NoSplash.splashFactory,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              color: Color.fromARGB(245, 255, 255, 255),
+              height: 50,
+            ),
+            // 구분선
+            Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
+            SizedBox(height: 16),
+            // 주차 선택(월별/주별 보기) 영역 // (체크) 이거는 inkWell로 하는 게 더 예쁘지 않을까? 전체적 splash에 관해서 나중에 디자이너와 토의해보기
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Row(
+                children: [
+                  Text(_focusedCalendarDate.month.toString() + "월 " + weekNumOfMonth.toString() + "주차",
+                      style: interBold24),
+                  Expanded(child: Container()),
+                  // 저번주 버튼
+                  SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: IconButton(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        padding: EdgeInsets.zero,
+                        icon: Icon(Icons.keyboard_arrow_left, size: 24, color: colorGrey3),
+                        onPressed: () {
+                          if (_calendarFormat == CalendarFormat.week) {
+                            // 주별 보기
+                            _focusedCalendarDate = _focusedCalendarDate.add(Duration(days: -7));
+                            _selectedCalendarDate = _focusedCalendarDate;
+                          } else {
+                            // 월별 보기
+                            _focusedCalendarDate =
+                                DateTime(_focusedCalendarDate.year, _focusedCalendarDate.month - 1, 1);
+                            _selectedCalendarDate = _focusedCalendarDate;
+                          }
+                          setState(() {});
+                        },
+                      )),
+                  // 다음주 버튼
+                  SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: IconButton(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        padding: EdgeInsets.zero,
+                        icon: Icon(Icons.keyboard_arrow_right, size: 24, color: colorGrey3),
+                        onPressed: () {
+                          if (_calendarFormat == CalendarFormat.week) {
+                            // 주별 보기
+                            _focusedCalendarDate = _focusedCalendarDate.add(Duration(days: 7));
+                            _selectedCalendarDate = _focusedCalendarDate;
+                          } else {
+                            // 월별 보기
+                            _focusedCalendarDate =
+                                DateTime(_focusedCalendarDate.year, _focusedCalendarDate.month + 1, 1);
+                            _selectedCalendarDate = _focusedCalendarDate;
+                          }
+                          setState(() {});
+                        },
+                      )),
+                  SizedBox(width: 16),
+                  // 주별보기/월별보기 버튼
+                  SizedBox(
+                    width: 48,
+                    height: 28,
+                    child: TextButton(
+                      onPressed: () {
+                        if (_calendarFormat == CalendarFormat.week) {
+                          _calendarFormat = CalendarFormat.month;
+                        } else {
+                          _calendarFormat = CalendarFormat.week;
+                        }
+                        setState(() {});
+                      },
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(_calendarFormat == CalendarFormat.week ? "주" : "월",
+                              style: TextStyle(
+                                  fontSize: 13,
+                                  fontFamily: "Inter",
+                                  color: colorGrey3,
+                                  height: 1,
+                                  leadingDistribution: TextLeadingDistribution.even)),
+                          SizedBox(width: 4),
+                          Transform.rotate(
+                              angle: 90 * math.pi / 180,
+                              child: Icon(
+                                Icons.arrow_forward_ios,
+                                size: 12,
+                                color: colorGrey3,
+                              )),
+                        ],
+                      ),
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        padding: EdgeInsets.fromLTRB(10, 6, 10, 6),
+                        splashFactory: NoSplash.splashFactory,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            // 날짜 선택 영역
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            //   child: Container(height: 70, color: Colors.white),
+            // ),
+            TableCalendar(
+              locale: 'ko-KR',
+              firstDay: DateTime.utc(2020, 01, 01),
+              lastDay: DateTime.utc(2050, 12, 31),
+              focusedDay: _focusedCalendarDate,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              headerVisible: false,
+              calendarFormat: _calendarFormat,
+              // 요일
+              daysOfWeekHeight: 18,
+              rowHeight: 55, // (체크) 나중에 조정
+              daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(fontSize: 13, fontFamily: "Inter", color: colorGrey2, height: 1.5),
+                  weekendStyle: TextStyle(fontSize: 13, fontFamily: "Inter", color: colorGrey2, height: 1.5)),
+              // 날짜
+              calendarStyle: const CalendarStyle(
+                outsideDaysVisible: false,
+                // isTodayHighlighted: false,
+                defaultTextStyle: TextStyle(fontSize: 16, fontFamily: "Inter", color: colorBlue, height: 1.5),
+                weekendTextStyle: TextStyle(fontSize: 16, fontFamily: "Inter", color: colorBlue, height: 1.5),
+                selectedDecoration: BoxDecoration(shape: BoxShape.circle, color: colorBlue), // (체크) 임시
+                selectedTextStyle:
+                    TextStyle(fontSize: 16, fontFamily: "Inter", color: Colors.white, height: 1.5), // (체크) 임시
+                todayDecoration:
+                    BoxDecoration(shape: BoxShape.circle, color: Color.fromARGB(25, 0, 122, 255)), // (체크) 임시
+                todayTextStyle: TextStyle(fontSize: 16, fontFamily: "Inter", color: colorBlue, height: 1.5), // (체크) 임시
+              ),
+              // function
+              selectedDayPredicate: (currentSelectedDate) {
+                return (isSameDay(_selectedCalendarDate, currentSelectedDate));
+              },
+              onDaySelected: (selectedDay, focusedDay) {
+                if (!isSameDay(_selectedCalendarDate, selectedDay)) {
+                  setState(() {
+                    _selectedCalendarDate = selectedDay;
+                    _focusedCalendarDate = focusedDay;
+                  });
+                }
+              },
+              // cellBuilder
+              calendarBuilders: _calendarBuilder(),
+              // // events
+              // eventLoader: (day) {
+              //   return _getEventsForDay(day);
+              // },
+            ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            //   child: Row(
+            //     children: [
+            //       Container(width: dateWidth * (_focusedCalendarDate.weekday - DateTime.monday)),
+            //       Container(width: dateWidth, height: 3, color: colorBlue),
+            //     ],
+            //   ),
+            // ),
+            SizedBox(height: 16),
+            _calendarFormat == CalendarFormat.week
+                ?
+                // 주별 보기인 경우 ----------
+                Column(
+                    children: [
+                      FutureBuilder(
+                          future: getTodayMenu(_selectedCalendarDate),
+                          builder: (context, AsyncSnapshot snapshot) {
+                            if (snapshot.hasError) {
+                              return Container(child: Text("Error"));
+                            } else if (snapshot.hasData) {
+                              if (snapshot.data.isEmpty) {
+                                // 메뉴 없을 때
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: Container(
+                                      height: 112,
+                                      width: widthPadding,
+                                      decoration: BoxDecoration(
+                                          border: Border.all(color: colorGrey1),
+                                          borderRadius: BorderRadius.all(Radius.circular(13.0))),
+                                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                                        Text("오늘의 식단이 없습니다.", style: inter17Grey3),
+                                        Text("여기를 눌러 추가하세요", style: inter17Blue)
+                                      ])),
+                                );
+                              } else {
+                                // 메뉴 존재할 때
+                                return menuList(snapshot.data);
+                              }
+                            } else {
+                              return Container();
+                            }
+                          }),
+                      SizedBox(height: 24),
+                      // 추천 식단 영역
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // 제목
+                            Text("추천 식단", style: interBold24),
+                            Expanded(child: Container()),
+                            // 더보기 버튼
+                            SizedBox(
+                                width: 58,
+                                height: 18,
+                                child: InkWell(
+                                  //(체크) 누를 때 splash가 딱 맞는 직사각형이라 좀 어색해보임. 나중에 수정하기(디자이너에게 질문)
+                                  child: Row(
+                                    children: const [
+                                      Text("더보기",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontFamily: "Inter",
+                                            color: Color.fromARGB(130, 34, 34, 34),
+                                            height: 1.2,
+                                          )),
+                                      SizedBox(width: 2),
+                                      SizedBox(
+                                        height: 16,
+                                        width: 16,
+                                        child: Icon(Icons.arrow_forward_ios,
+                                            size: 16, color: Color.fromARGB(130, 34, 34, 34)),
+                                      ),
+                                    ],
+                                  ),
+                                  onTap: () async {
+                                    await Navigator.of(context)
+                                        .push(MaterialPageRoute(builder: (context) => DietRecommendPage()));
+                                    setState(() {});
+                                  },
+                                )),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      // 추천 식단 박스
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: recommendRecipeList(3),
+                      ),
+                    ],
+                  )
+                :
+                // 월별 보기인 경우 ----------  // (체크) 그 month의 1~5주차 요약 보여줌
+                Column(
+                    children: [],
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 캘린더 커스텀 builder
+  CalendarBuilders _calendarBuilder() {
+    return CalendarBuilders();
+  }
+
+  // List<dynamic> _getEventsForDay(DateTime day) {
+  //   return events[day] ?? [];
+  // }
+
+  // Map<DateTime, List> events = {};
+  // Map<DateTime, List<Map>> events = {
+  //   // 예시
+  //   DateTime.now(): [
+  //     {'completed': false, 'name': "미트 스파게티"}
+  //   ]
+  // };
+  // final events = LinkedHashMap(equals: isSameDay,)
+
+  Widget recommendRecipeList(int count) {
+    // (체크) 일단 임시로 모든 레시피 리스트 중 3개만 가져오는 걸로. 나중에 랜덤 알고리즘 짜기
+    return FutureBuilder(
+        future: limit_getRecommendRecipeDocument(),
+        builder: (context, AsyncSnapshot snapshot) {
+          return Column(
+            children: [
+              for (int i = 0; i < snapshot.data.length; i++)
+                Column(
+                  children: [
+                    recommendRecipeBox(snapshot.data.keys.elementAt(i), snapshot.data.values.elementAt(i)['name']),
+                    SizedBox(height: 16),
+                  ],
+                )
+            ],
+          );
+        });
+  }
+
+  // 식단 박스  (체크) 오늘의 메뉴와 다름. 유통기한 임박 식재료까지 보여줘야 함. 나중에 구분해주기.
+  Widget recommendRecipeBox(String docid, String name) {
+    return GestureDetector(
+      onTap: () async {
+        // (체크) onTap => 각각의 레시피 상세로 들어갈 수 있게끔 정보 넘겨줘야 함
+        await navigatorKey.currentState
+            ?.pushNamed('/recipe_detail_page', arguments: {'recipe_uid': docid, 'name': name});
+        setState(() {}); // (체크) 일단 이렇게 썼는데 맞는 플로우인지 확인하기
+      },
+      child: Container(
+          width: MediaQuery.of(context).size.width - 32.0,
+          height: 112,
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10.0)),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                // 음식 사진
+                Container(
+                    child: Center(
+                      child: Image.asset(
+                        'src/meal_meat_spaghetti.png',
+                        width: 60,
+                        height: 60,
+                      ),
+                    ),
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(20.0), color: colorBackground)),
+                SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 메뉴 이름
+                    Text(name, style: interBold17), // (체크) SemiBold
+                    SizedBox(height: 13),
+                    // 유통기한 식재료(최대 2개, 글자수 최대 4자) (체크)
+                    Row(
+                      children: [
+                        diet_expireDateItemBox(),
+                        const SizedBox(width: 12),
+                        diet_expireDateItemBox()
+                      ], // (체크) 나중엔 개수를 변수로 하여 itemList 위젯 만들기
+                    )
+                  ],
+                )
+              ],
+            ),
+          )),
+    );
+  }
+
+  Widget diet_expireDateItemBox() {
+    return Container(
+        child: Row(children: [
+      Container(
+          child: Center(
+            child: Image.asset(
+              'src/ingredient_apple.png',
+              width: 18,
+              height: 18,
+            ),
+          ),
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(color: colorBackground, borderRadius: BorderRadius.circular(100))),
+      SizedBox(width: 4),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text("D-1", style: TextStyle(color: Color.fromARGB(255, 235, 88, 40), fontFamily: "Inter", fontSize: 12)),
+        Text("아스파라...", style: TextStyle(color: colorBlack, fontFamily: "Inter", fontSize: 12)),
+      ]),
+    ]));
+  }
+
+  Widget menuList(Map map) {
+    return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            for (int i = 0; i < map.length; i++)
+              Column(
+                children: [
+                  menuBox(
+                      map.keys.elementAt(i),
+                      map.values.elementAt(i)['name'],
+                      map.values.elementAt(i)['sequence'],
+                      map.values.elementAt(i)['completed'],
+                      map.values.elementAt(i)['recipe_uid'],
+                      map.values.elementAt(i)['num_of_plates'],
+                      _selectedCalendarDate),
+                  SizedBox(height: 16)
+                ],
+              )
+          ],
+        ));
+  }
+
+  // 오늘의 메뉴 박스
+  Widget menuBox(String docid, String name, int sequence, bool completed, String recipeUid, int numOfPlates,
+      DateTime menuDateTime) {
+    // 여기서 docid는 menu 자동 uid
+    Color completeColor;
+    if (completed) {
+      completeColor = colorBlue;
+    } else {
+      completeColor = colorGrey3;
+    }
+    return GestureDetector(
+      onTap: () async {
+        if (completed) {
+          // 이미 완료된 거면 일반 레시피로 취급
+          await navigatorKey.currentState
+              ?.pushNamed('/recipe_detail_page', arguments: {'recipe_uid': recipeUid, 'name': name});
+          setState(() {});
+        } else {
+          // 미완료 상태면 '완료하기' 버튼 있는 메뉴 페이지로 이동
+          await navigatorKey.currentState?.pushNamed('/menu_detail_page', arguments: {
+            'docid': docid,
+            'recipe_uid': recipeUid,
+            'name': name,
+            'num_of_plates': numOfPlates,
+            'menuDateTime': menuDateTime
+          });
+          setState(() {});
+        }
+      },
+      // (체크) onTap => menu_detail_page 들어가서 완료버튼 있는 버전 볼 수 있음. 이미 완료된 거면 recipe_detail_page로 들어가기.
+      child: Container(
+          width: MediaQuery.of(context).size.width - 32.0,
+          height: 112,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            // 전체 박스
+            children: [
+              // 완료 표시 영역
+              Container(
+                  width: 23,
+                  decoration: BoxDecoration(
+                    color: completeColor,
+                    borderRadius: BorderRadius.only(topLeft: Radius.circular(10), bottomLeft: Radius.circular(10)),
+                  ),
+                  child: completed
+                      ? Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [Text("완", style: inter12White), Text("료", style: inter12White)],
+                        )
+                      : Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("미", style: inter12White),
+                            Text("완", style: inter12White),
+                            Text("료", style: inter12White),
+                          ],
+                        )),
+              // 메뉴 정보 영역
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      // 음식 사진
+                      Container(
+                          child: Center(
+                            child: Image.asset(
+                              'src/meal_meat_spaghetti.png',
+                              width: 60,
+                              height: 60,
+                            ),
+                          ),
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20.0), color: colorBackground)),
+                      SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              //(체크) 캘린더 날짜마다 다른 식단 있으면 그 박스도 보여주고 식사 2로 순서 바뀌어야 함.
+                              Icon(Icons.restaurant_menu, color: completed ? colorBlue : colorGrey3, size: 18),
+                              SizedBox(width: 4),
+                              Text("식사 " + (sequence + 1).toString(),
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontFamily: "Inter",
+                                      height: 1,
+                                      color: completed ? colorBlue : colorGrey3,
+                                      fontWeight: FontWeight.bold)) // (체크) SemiBold
+                            ],
+                          ),
+                          // 메뉴 이름
+                          Text(name, style: interBold17), // (체크) SemiBold
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              // 메뉴 설정 버튼
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: IconButton(
+                        splashColor: Colors.transparent,
+                        highlightColor: Colors.transparent,
+                        padding: EdgeInsets.zero,
+                        onPressed: () async {
+                          if (await menuBottomSheet()) {
+                            // (체크) 아직 기능은 하나도 넣지 않았음.
+                            // 창 닫았을 때
+                            setState(() {});
+                          }
+                        },
+                        icon: Icon(Icons.more_vert, size: 24, color: colorGrey3))),
+              ),
+            ],
+          )),
+    );
+  }
+
+// 메뉴 바텀 시트
+  Future<bool> menuBottomSheet() async {
+    await showModalBottomSheet(
+        useRootNavigator: true,
+        backgroundColor: Colors.transparent,
+        context: context,
+        builder: (BuildContext context) {
+          return SafeArea(
+            child: SizedBox(
+              height: 260,
+              child: Column(
+                children: [
+                  Container(
+                      height: 182,
+                      width: MediaQuery.of(context).size.width - 32,
+                      margin: EdgeInsets.symmetric(horizontal: 16.0),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13)),
+                      child: Column(
+                        children: [
+                          // 완료 버튼
+                          SizedBox(
+                            height: 60,
+                            width: MediaQuery.of(context).size.width - 32,
+                            child: TextButton(
+                                onPressed: () {}, // (체크) 아직 안 됨. 데이터 가져와서 해야 함.. 나중에 하기.
+                                child: Text("완료 표시", style: inter17Blue),
+                                style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    splashFactory: NoSplash.splashFactory,
+                                    backgroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(13), topRight: Radius.circular(13))))),
+                          ),
+                          Container(height: 0.8, width: MediaQuery.of(context).size.width - 32, color: colorGrey1),
+                          SizedBox(
+                            height: 60,
+                            width: MediaQuery.of(context).size.width - 32,
+                            child: TextButton(
+                                onPressed: () {},
+                                child: Text("삭제", style: inter17Blue),
+                                style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  splashFactory: NoSplash.splashFactory,
+                                  backgroundColor: Colors.white,
+                                )),
+                          ),
+                          Container(height: 0.8, width: MediaQuery.of(context).size.width - 32, color: colorGrey1),
+                          SizedBox(
+                            height: 60,
+                            width: MediaQuery.of(context).size.width - 32,
+                            child: TextButton(
+                                onPressed: () {},
+                                child: Text("순서 변경", style: inter17Blue),
+                                style: TextButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    splashFactory: NoSplash.splashFactory,
+                                    backgroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.only(
+                                            bottomLeft: Radius.circular(13), bottomRight: Radius.circular(13))))),
+                          ),
+                        ],
+                      )),
+                  SizedBox(height: 8),
+                  Container(
+                      height: 60,
+                      width: MediaQuery.of(context).size.width - 32,
+                      margin: EdgeInsets.symmetric(horizontal: 16.0),
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(13)),
+                      child: SizedBox(
+                          height: 60,
+                          width: MediaQuery.of(context).size.width - 32,
+                          child: TextButton(
+                              onPressed: () {
+                                navigatorKey.currentState?.pop();
+                              },
+                              child: Text("취소",
+                                  style: TextStyle(
+                                      fontSize: 17,
+                                      fontFamily: "Inter",
+                                      color: colorBlue,
+                                      fontWeight: FontWeight.bold)),
+                              style: TextButton.styleFrom(
+                                  padding: EdgeInsets.zero,
+                                  splashFactory: NoSplash.splashFactory,
+                                  backgroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)))))),
+                  SizedBox(height: 10),
+                ],
+              ),
+            ),
+          );
+        });
+    return true;
   }
 }
 
@@ -1525,19 +1441,180 @@ class MyTap extends StatefulWidget {
 
 class _MyTapState extends State<MyTap> {
   final viewModel = LoginViewModel(KakaoLogin());
+  List info = ['이용약관', "개인정보보호정책", "고객지원", "버전정보"];
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-        child: Center(
-      // 로그아웃 버튼
-      child: ElevatedButton(
-          onPressed: () async {
-            print("my uid is " + FirebaseAuth.instance.currentUser!.uid);
-            await viewModel.logout();
-            setState(() {});
-            navigatorKey.currentState?.pushNamedAndRemoveUntil('/login_page', (route) => false);
-          },
-          child: Text("Logout")),
-    ));
+    return Scaffold(
+      backgroundColor: colorBackground,
+      body: Column(children: [
+        //appBar 상단바
+        Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0), // (체크)(중요) 전체적인 상단바 padding 수정하기
+                  child: Stack(
+                    children: [
+                      // 제목
+                      Align(
+                          alignment: Alignment.center,
+                          child: Container(
+                              height: 24, child: Text("마이페이지", style: interBold17))), // (체크) fontweight Semi bold
+                    ],
+                  )),
+            ],
+          ),
+          color: Color.fromARGB(245, 255, 255, 255),
+          height: 50, // (체크) 원래 44인데 좀 늘림. 나중에 실제 앱에서 확인해보기
+        ),
+        // 상단바 이외의 영역 ---
+        // 유저 정보
+        FutureBuilder(
+            future: getUserInfo(), // 닉네임과 이메일, 알림설정여부 가져오기.
+            builder: (context, AsyncSnapshot snapshot) {
+              if (snapshot.hasError) {
+                return Center(child: Text("Error"));
+              } else if (snapshot.hasData) {
+                return Column(
+                  children: [
+                    Container(
+                      color: Colors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Container(
+                            height: 96,
+                            width: MediaQuery.of(context).size.width - 32,
+                            child: Row(
+                              children: [
+                                // 프로필 사진
+                                Container(
+                                  decoration:
+                                      BoxDecoration(borderRadius: BorderRadius.circular(100), color: colorBackground),
+                                  width: 64,
+                                  height: 64,
+                                ),
+                                SizedBox(width: 16),
+                                // 사용자 정보(닉네임/이메일)
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(snapshot.data.values.elementAt(0)['nickname'],
+                                          style: TextStyle(
+                                              fontSize: 18,
+                                              fontFamily: "Inter",
+                                              fontWeight: FontWeight.bold,
+                                              color: colorBlue,
+                                              height: 1)),
+                                      SizedBox(height: 8),
+                                      Text(snapshot.data.values.elementAt(0)['email'],
+                                          style: TextStyle(
+                                              fontSize: 14, fontFamily: "Inter", color: colorBlack, height: 1))
+                                    ],
+                                  ),
+                                ),
+                                // 유저 정보 보기 버튼
+                                SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: IconButton(
+                                        splashColor: Colors.transparent,
+                                        highlightColor: Colors.transparent,
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () async {
+                                          await navigatorKey.currentState?.pushNamed('/profile_manage_page');
+                                          setState(() {});
+                                        }, // 프로필 관리 페이지로 이동
+                                        icon: Icon(Icons.arrow_forward_ios, size: 24, color: colorGrey3))),
+                              ],
+                            )),
+                      ),
+                    ),
+                    // 구분선
+                    Container(height: 0.5, width: MediaQuery.of(context).size.width, color: colorGrey1),
+                    SizedBox(height: 8),
+                    // 알림 설정 버튼 영역
+                    Container(
+                        height: 67,
+                        width: MediaQuery.of(context).size.width,
+                        color: Colors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          child: Row(
+                            children: [
+                              Text("알림 설정", style: inter16),
+                              Expanded(child: Container()),
+                              //switch 버튼 들어가야 함. (체크) 일단 사진으로 대체..
+                            ],
+                          ),
+                        ))
+                  ],
+                );
+              } else {
+                return Container();
+              }
+            }),
+        // 이외의 버튼 영역
+        for (int i = 0; i < info.length; i++)
+          Column(
+            children: [
+              // 구분선
+              Container(
+                  height: 1,
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  color: colorGrey1), // (체크) width 0.5로 하면 하나씩 안보여서 일단 1로 변경.
+              Container(
+                  height: 67,
+                  width: MediaQuery.of(context).size.width,
+                  color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Row(
+                      children: [Text(info[i], style: inter16)],
+                    ),
+                  )),
+            ],
+          ),
+        SizedBox(height: 8),
+        // 로그아웃 버튼
+        Container(
+          height: 67,
+          width: MediaQuery.of(context).size.width,
+          color: Colors.white,
+          child: TextButton(
+            onPressed: () async {
+              print("my uid is " + FirebaseAuth.instance.currentUser!.uid);
+              await viewModel.logout();
+              setState(() {});
+              navigatorKey.currentState?.pushNamedAndRemoveUntil('/login_page', (route) => false);
+            },
+            style: TextButton.styleFrom(splashFactory: NoSplash.splashFactory),
+            child: Container(
+                child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text("로그아웃", style: TextStyle(fontSize: 16, fontFamily: "Inter", height: 1.29, color: colorGrey3)),
+                ],
+              ),
+            )),
+          ),
+        ),
+        // ElevatedButton(
+        //     onPressed: () async {
+        //       print("my uid is " + FirebaseAuth.instance.currentUser!.uid);
+        //       await viewModel.logout();
+        //       setState(() {});
+        //       navigatorKey.currentState?.pushNamedAndRemoveUntil('/login_page', (route) => false);
+        //     },
+        //     child: Text("Logout")),
+        Expanded(
+          child: Container(color: Colors.white),
+        )
+      ]),
+    );
   }
 }
